@@ -15,7 +15,9 @@ $ echo '{"foo": "0", "obj": {"bar":1, "baz":"2"}}' | ./jtr
 
 import json, strformat
 
-proc objectTree(jobj: JsonNode): string =
+proc objectTree(jobj: JsonNode, indent: string = ""): string =
+  var nextIndent: string
+  const defaultIndent: string = "    "
   var res: string
   for k, v in jobj.pairs:
     # echo &"key: {k}, val: {$v}"
@@ -26,11 +28,10 @@ proc objectTree(jobj: JsonNode): string =
       of JFloat: "float>"
       of JInt: "<int>"
       of JArray: "<list>"
-      of JObject: &"\n    {objectTree(v)}"
-      # of JObject: ""
-    res &= &"└── {k} {types}\n"
+      of JObject: &"\n{objectTree(v, nextIndent)}"
+    res &= &"{indent}└── {k} {types}\n"
+    nextIndent = indent & defaultIndent
   return res
-    # return &"└── {k}<{types}>"
 
 let line = stdin.readLine
 let jobj = line.parseJson()
