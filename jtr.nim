@@ -13,26 +13,29 @@ $ echo '{"foo": "0", "obj": {"bar":1, "baz":"2"}}' | ./jtr
 ここまではjqと同じ
 ]#
 
-import json, strutils
+import json, strformat
 
 proc objectTree(jobj: JsonNode): string =
+  var res: string
   for k, v in jobj.pairs:
+    # echo &"key: {k}, val: {$v}"
     let types: string = case v.kind
-      of JNull: "(null)"
-      of JString: "(str)"
-      of JBool: "(bool)"
-      of JFloat: "(float)"
-      of JInt: "(int)"
-      of JArray: "(list)"
-      of JObject: objectTree(v)
-      # of JObject: "\n    └── "
-    # echo "key: " & k & "val: " & $v
-    return "└── " & k & types
+      of JNull: "<null>"
+      of JString: "<str>"
+      of JBool: "<bool>"
+      of JFloat: "float>"
+      of JInt: "<int>"
+      of JArray: "<list>"
+      of JObject: &"\n    {objectTree(v)}"
+      # of JObject: ""
+    res &= &"└── {k} {types}\n"
+  return res
+    # return &"└── {k}<{types}>"
 
 let line = stdin.readLine
 let jobj = line.parseJson()
 let jstring = jobj.pretty()
-echo jstring
+echo jstring # jqと同じように、JSONを解釈してstdoutへ表示する
 
 echo "."
 let tr = objectTree(jobj)
