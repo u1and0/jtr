@@ -3,4 +3,4 @@
 /testresults/
 /tests/
 !/tests/*.nim
-/*.md
+/idea.md
