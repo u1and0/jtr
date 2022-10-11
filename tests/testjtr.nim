@@ -8,9 +8,8 @@ discard """
 ├── foo <string>
 ├── obj
     ├── bar <int>
-    ├── baz <string>
-├── name <string>
-
+    └── baz <string>
+└── name <string>
 '''
 """
 
