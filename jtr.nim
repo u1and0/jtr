@@ -31,6 +31,8 @@ func arrayTree(jarray: JsonNode): string =
   elif all(typesArr, func(x: JsonNodeKind): bool = x == JArray):
     return "[array]"
   elif all(typesArr, func(x: JsonNodeKind): bool = x == JObject):
+    return "[object]"
+  else:
     return "[any]"
 
 
