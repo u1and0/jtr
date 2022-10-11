@@ -10,31 +10,28 @@ $ echo '{"foo": "0", "obj": {"bar":1, "baz":"2"}, "name": "ken"}' | ./jtr
 └── name <string>
 ]#
 
-import json, strformat, strutils, sequtils
+import json, strformat, strutils, sequtils, sugar
 
 func lastOne(i, length: int): bool =
   i >= length-1
 
 func arrayTree(jarray: JsonNode): string =
-  var typesArr: seq[JsonNodeKind]
-  for val in jarray:
-    typesArr.add(val.kind)
-  var typesall: string
-  if all(typesArr, proc(x: JsonNodeKind): bool = x == JNull):
-    typesall = "[null]"
-  elif all(typesArr, proc(x: JsonNodeKind): bool = x == JString):
-    typesall = "[string]"
-  elif all(typesArr, proc(x: JsonNodeKind): bool = x == JBool):
-    typesall = "[bool]"
-  elif all(typesArr, proc(x: JsonNodeKind): bool = x == JFloat):
-    typesall = "[float]"
-  elif all(typesArr, proc(x: JsonNodeKind): bool = x == JInt):
-    typesall = "[int]"
-  elif all(typesArr, proc(x: JsonNodeKind): bool = x == JArray):
-    typesall = "[array]"
-  elif all(typesArr, proc(x: JsonNodeKind): bool = x == JObject):
-    typesall = "[any]"
-  return typesall
+  let typesArr = collect:
+    for val in jarray: val.kind
+  if all(typesArr, func(x: JsonNodeKind): bool = x == JNull):
+    return "[null]"
+  elif all(typesArr, func(x: JsonNodeKind): bool = x == JString):
+    return "[string]"
+  elif all(typesArr, func(x: JsonNodeKind): bool = x == JBool):
+    return "[bool]"
+  elif all(typesArr, func(x: JsonNodeKind): bool = x == JFloat):
+    return "[float]"
+  elif all(typesArr, func(x: JsonNodeKind): bool = x == JInt):
+    return "[int]"
+  elif all(typesArr, func(x: JsonNodeKind): bool = x == JArray):
+    return "[array]"
+  elif all(typesArr, func(x: JsonNodeKind): bool = x == JObject):
+    return "[any]"
 
 
 func objectTree(jobj: JsonNode, indent = ""): string =
