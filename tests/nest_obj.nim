@@ -5,6 +5,7 @@ import ../jtr
 
 discard """
   output: '''
+.
 ├── foo <string>
 ├── obj
 │   ├── bar <int>
@@ -19,4 +20,4 @@ discard """
 const line = """
 {"foo": "0", "obj": {"bar":1, "baz":"2", "nex": {"boo": 1, "cat": 100}}, "name": "ken"}
 """
-echo objectTree(line.parseJson())
+echo rootTree(line.parseJson())

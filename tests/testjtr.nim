@@ -5,6 +5,7 @@ import ../jtr
 
 discard """
   output: '''
+.
 ├── foo <string>
 ├── obj
 │   ├── bar <int>
@@ -16,4 +17,4 @@ discard """
 var line = """
 {"foo": "0", "obj": {"bar":1, "baz":"2"}, "name": "ken"}
 """
-echo objectTree(line.parseJson())
+echo rootTree(line.parseJson())

@@ -27,17 +27,17 @@ func arrayTree(jarray: JsonNode): string =
   elif all(typesArr, proc(x: JsonNodeKind): bool = x == JBool):
     typesall = "[bool]"
   elif all(typesArr, proc(x: JsonNodeKind): bool = x == JFloat):
-    typesall = "[float32]"
+    typesall = "[float]"
   elif all(typesArr, proc(x: JsonNodeKind): bool = x == JInt):
     typesall = "[int]"
   elif all(typesArr, proc(x: JsonNodeKind): bool = x == JArray):
     typesall = "[array]"
   elif all(typesArr, proc(x: JsonNodeKind): bool = x == JObject):
     typesall = "[any]"
-  return &"{typesall}"
+  return typesall
 
 
-func objectTree*(jobj: JsonNode, indent = ""): string =
+func objectTree(jobj: JsonNode, indent = ""): string =
   var
     res: seq[string]
     i: int
@@ -61,13 +61,25 @@ func objectTree*(jobj: JsonNode, indent = ""): string =
     i += 1
   return res.join("\n")
 
+func rootTree*(jnode: JsonNode): string =
+  let types: string = case jnode.kind
+    of JNull: "<null>"
+    of JString: "<string>"
+    of JBool: "<bool>"
+    of JFloat: "<float>"
+    of JInt: "<int>"
+    of JArray: &"<array{arrayTree(jnode)}>"
+    of JObject: ".\n" & objectTree(jnode, "")
+  return types
+
+
+
 when isMainModule:
   let line = stdin.readLine
-  let jobj = line.parseJson()
-  let jstring = jobj.pretty()
+  let jnode = line.parseJson()
+  let jstring = jnode.pretty()
 
-  echo "."
-  echo objectTree(jobj)
+  echo rootTree(jnode)
 
   # TODO
   # 後でオプションで表示切替
