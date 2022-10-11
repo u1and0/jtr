@@ -16,14 +16,17 @@ func lastOne(i, length: int): bool =
   i >= length-1
 
 func objectTree*(jobj: JsonNode, indent = ""): string =
-  var res: seq[string]
-  var branch = "├── "
-  var nextIndent = indent & "│" & " ".repeat(3)
-  var i: int
+  var
+    res: seq[string]
+    i: int
+    branch, nextIndent: string
   for key, val in jobj.pairs:
     if lastOne(i, len(jobj)):
       branch = "└── "
       nextIndent = indent & " ".repeat(4)
+    else:
+      branch = "├── "
+      nextIndent = indent & "│" & " ".repeat(3)
     let types: string = case val.kind
       of JNull: "<null>"
       of JString: "<string>"
