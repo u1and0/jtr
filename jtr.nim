@@ -62,7 +62,7 @@ func objectTree(jobj: JsonNode, indent = ""): string =
   return res.join("\n")
 
 func rootTree*(jnode: JsonNode): string =
-  let types: string = case jnode.kind
+  case jnode.kind
     of JNull: "<null>"
     of JString: "<string>"
     of JBool: "<bool>"
@@ -70,9 +70,6 @@ func rootTree*(jnode: JsonNode): string =
     of JInt: "<int>"
     of JArray: &"<array{arrayTree(jnode)}>"
     of JObject: ".\n" & objectTree(jnode, "")
-  return types
-
-
 
 when isMainModule:
   let line = stdin.readLine
