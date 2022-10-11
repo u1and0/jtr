@@ -47,14 +47,14 @@ func objectTree(jobj: JsonNode, indent = ""): string =
       branch = "├── "
       nextIndent = indent & "│" & " ".repeat(3)
     let types: string = case val.kind
-      of JNull: "<null>"
-      of JString: "<string>"
-      of JBool: "<bool>"
-      of JFloat: "<float>"
-      of JInt: "<int>"
-      of JArray: &"<array{arrayTree(val)}>"
+      of JNull: " <null>"
+      of JString: " <string>"
+      of JBool: " <bool>"
+      of JFloat: " <float>"
+      of JInt: " <int>"
+      of JArray: &" <array{arrayTree(val)}>"
       of JObject: "\n" & objectTree(val, nextIndent)
-    res.add(&"{indent}{branch}{key} {types}")
+    res.add(&"{indent}{branch}{key}{types}")
     i += 1
   return res.join("\n")
 
