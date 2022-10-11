@@ -76,7 +76,7 @@ func rootTree*(jnode: JsonNode): string =
     of JObject: ".\n" & objectTree(jnode, "")
 
 when isMainModule:
-  let line = stdin.readLine
+  let line = stdin.readAll
   let jnode = line.parseJson()
   echo rootTree(jnode)
 
