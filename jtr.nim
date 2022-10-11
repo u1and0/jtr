@@ -74,11 +74,10 @@ func rootTree*(jnode: JsonNode): string =
 when isMainModule:
   let line = stdin.readLine
   let jnode = line.parseJson()
-  let jstring = jnode.pretty()
-
   echo rootTree(jnode)
 
   # TODO
   # 後でオプションで表示切替
   # デフォルト非表示
-  echo jstring # jqと同じように、JSONを解釈してstdoutへ表示する
+  # let jstring = jnode.pretty()
+  # echo jstring # jqと同じように、JSONを解釈してstdoutへ表示する

@@ -1,16 +1,14 @@
-# jtr command test
-
 import json
 import ../jtr
 
 discard """
   output: '''
-.
-└── foo <array[int]>
+<int>
+<string>
+<bool>
 '''
 """
 
-const line = """
-{"foo": [1,2,3]}
-"""
-echo rootTree(line.parseJson())
+echo rootTree(parseJson($5))
+echo rootTree(parseJson("\"5\""))
+echo rootTree(parseJson("true"))

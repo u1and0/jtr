@@ -1,13 +1,16 @@
+# jtr command test
+
 import json
 import ../jtr
 
 discard """
   output: '''
-<int>
+.
+└── foo <array[int]>
 '''
 """
 
 const line = """
-5
+{"foo": [1,2,3]}
 """
 echo rootTree(line.parseJson())
