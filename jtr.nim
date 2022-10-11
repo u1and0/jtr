@@ -15,26 +15,10 @@ import json, strformat, strutils, sequtils, sugar
 func lastOne(i, length: int): bool =
   i >= length-1
 
-func arrayTree(jarray: JsonNode): string =
-  let typesArr = collect:
-    for val in jarray: val.kind
-  if all(typesArr, func(x: JsonNodeKind): bool = x == JNull):
-    return "[null]"
-  elif all(typesArr, func(x: JsonNodeKind): bool = x == JString):
-    return "[string]"
-  elif all(typesArr, func(x: JsonNodeKind): bool = x == JBool):
-    return "[bool]"
-  elif all(typesArr, func(x: JsonNodeKind): bool = x == JFloat):
-    return "[float]"
-  elif all(typesArr, func(x: JsonNodeKind): bool = x == JInt):
-    return "[int]"
-  elif all(typesArr, func(x: JsonNodeKind): bool = x == JArray):
-    return "[array]"
-  elif all(typesArr, func(x: JsonNodeKind): bool = x == JObject):
-    return "[object]"
-  else:
-    return "[any]"
-
+# 前方宣言
+# objectTree()内でarrayTree()を使う相互再帰のため、
+# 先に宣言が必要
+func arrayTree(jarray: JsonNode): string
 
 func objectTree(jobj: JsonNode, indent = ""): string =
   var
@@ -50,24 +34,45 @@ func objectTree(jobj: JsonNode, indent = ""): string =
       nextIndent = indent & "│" & " ".repeat(3)
     let types: string = case val.kind
       of JNull: " <null>"
-      of JString: " <string>"
       of JBool: " <bool>"
-      of JFloat: " <float>"
+      of JString: " <string>"
       of JInt: " <int>"
-      of JArray: &" <array{arrayTree(val)}>"
+      of JFloat: " <float>"
+      of JArray: &" <array{arrayTree(val)}"
       of JObject: "\n" & objectTree(val, nextIndent)
     res.add(&"{indent}{branch}{key}{types}")
     i += 1
   return res.join("\n")
 
+func arrayTree(jarray: JsonNode): string =
+  let typesArr: seq[JsonNodeKind] = collect:
+    for val in jarray: val.kind
+  if all(typesArr, func(x: JsonNodeKind): bool = x == JNull):
+    return "[null]>"
+  elif all(typesArr, func(x: JsonNodeKind): bool = x == JBool):
+    return "[bool]>"
+  elif all(typesArr, func(x: JsonNodeKind): bool = x == JString):
+    return "[string]>"
+  elif all(typesArr, func(x: JsonNodeKind): bool = x == JInt):
+    return "[int]>"
+  elif all(typesArr, func(x: JsonNodeKind): bool = x == JFloat):
+    return "[float]>"
+  elif all(typesArr, func(x: JsonNodeKind): bool = x == JArray):
+    return "[array]>"
+  elif all(typesArr, func(x: JsonNodeKind): bool = x == JObject):
+    let tree = objectTree(jarray[0], " ".repeat(7))
+    return "[.]>\n" & tree
+  else: # 全ての型が一致しない場合
+    return "[any]>"
+
 func rootTree*(jnode: JsonNode): string =
   case jnode.kind
     of JNull: "<null>"
-    of JString: "<string>"
     of JBool: "<bool>"
-    of JFloat: "<float>"
+    of JString: "<string>"
     of JInt: "<int>"
-    of JArray: &"<array{arrayTree(jnode)}>"
+    of JFloat: "<float>"
+    of JArray: &"<array{arrayTree(jnode)}"
     of JObject: ".\n" & objectTree(jnode, "")
 
 when isMainModule:
