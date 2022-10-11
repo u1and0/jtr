@@ -11,47 +11,44 @@ $ echo '{"foo": "0", "obj": {"bar":1, "baz":"2"}}' | ./jtr
 }
 
 ここまではjqと同じ
+
+$ echo '{"foo": "0", "obj": {"bar":1, "baz":"2"}, "name": "ken"}' | ./jtr
+.
+├── foo <string>
+├── obj
+    ├── bar <int>
+    ├── baz <string>
+
+├── name <string>
 ]#
 
-import json, strformat
+import json, strformat, strutils
 
-proc objectTree(jobj: JsonNode, indent: string = ""): string =
+proc objectTree*(jobj: JsonNode, indent: string = ""): string =
   var nextIndent: string
-  const defaultIndent: string = "    "
+  const defaultIndent: string = " ".repeat(4)
   var res: string
+  var branch: string = "├── "
   for k, v in jobj.pairs:
     # echo &"key: {k}, val: {$v}"
     let types: string = case v.kind
       of JNull: "<null>"
-      of JString: "<str>"
+      of JString: "<string>"
       of JBool: "<bool>"
-      of JFloat: "float>"
+      of JFloat: "<float>"
       of JInt: "<int>"
-      of JArray: "<list>"
-      of JObject: &"\n{objectTree(v, nextIndent)}"
-    res &= &"{indent}└── {k} {types}\n"
+      of JArray: "<array>"
+      of JObject: "\n" & objectTree(v, nextIndent)
+    res &= &"{indent}{branch}{k} {types}\n"
     nextIndent = indent & defaultIndent
   return res
 
-let line = stdin.readLine
-let jobj = line.parseJson()
-let jstring = jobj.pretty()
-echo jstring # jqと同じように、JSONを解釈してstdoutへ表示する
+when isMainModule:
+  let line = stdin.readLine
+  let jobj = line.parseJson()
+  let jstring = jobj.pretty()
+  echo jstring # jqと同じように、JSONを解釈してstdoutへ表示する
 
-echo "."
-let tr = objectTree(jobj)
-echo tr
+  echo "."
+  echo objectTree(jobj)
 
-# let splited = jstring.split("\n")
-# echo splited
-#
-# echo "."
-# for s in splited:
-#   if s.contains("{"):
-#     echo "└── "
-#   elif s.contains("}"):
-#     echo "pass"
-#   else:
-#     echo s
-#
-#
