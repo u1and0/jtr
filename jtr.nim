@@ -10,10 +10,31 @@ $ echo '{"foo": "0", "obj": {"bar":1, "baz":"2"}, "name": "ken"}' | ./jtr
 └── name <string>
 ]#
 
-import json, strformat, strutils
+import json, strformat, strutils, sequtils
 
 func lastOne(i, length: int): bool =
   i >= length-1
+
+func arrayTree(jarray: JsonNode): string =
+  var typesArr: seq[JsonNodeKind]
+  for val in jarray:
+    # let types: string = case val.kind
+    #   of JNull: "<null>"
+    #   of JString: "<string>"
+    #   of JBool: "<bool>"
+    #   of JFloat: "<float>"
+    #   of JInt: "<int>"
+    #   of JArray: "<array>" & arrayTree(val)
+    #   of JObject: "\n" & "obj"
+      # of JObject: "\n" & objectTree(val, nextIndent)
+    typesArr.add(val.kind)
+  var typesall: string
+  if all(typesArr, proc(x: JsonNodeKind): bool = x == JString):
+    typesall = "[string]"
+  elif all(typesArr, proc(x: JsonNodeKind): bool = x == JInt):
+    typesall = "[int]"
+  return &"{typesall}"
+
 
 func objectTree*(jobj: JsonNode, indent = ""): string =
   var
@@ -33,7 +54,7 @@ func objectTree*(jobj: JsonNode, indent = ""): string =
       of JBool: "<bool>"
       of JFloat: "<float>"
       of JInt: "<int>"
-      of JArray: "<array>"
+      of JArray: &"<array{arrayTree(val)}>"
       of JObject: "\n" & objectTree(val, nextIndent)
     res.add(&"{indent}{branch}{key} {types}")
     i += 1
