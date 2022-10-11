@@ -7,8 +7,8 @@ discard """
   output: '''
 ├── foo <string>
 ├── obj
-    ├── bar <int>
-    └── baz <string>
+│   ├── bar <int>
+│   └── baz <string>
 └── name <string>
 '''
 """

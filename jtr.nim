@@ -5,8 +5,8 @@ $ echo '{"foo": "0", "obj": {"bar":1, "baz":"2"}, "name": "ken"}' | ./jtr
 .
 ├── foo <string>
 ├── obj
-    ├── bar <int>
-    └── baz <string>
+│   ├── bar <int>
+│   └── baz <string>
 └── name <string>
 ]#
 
@@ -32,7 +32,7 @@ func objectTree*(jobj: JsonNode, indent: string = ""): string =
       of JArray: "<array>"
       of JObject: "\n" & objectTree(val, nextIndent)
     res.add(&"{indent}{branch}{key} {types}")
-    nextIndent = indent & " ".repeat(4)
+    nextIndent = indent & "│" & " ".repeat(3)
     i += 1
   return res.join("\n")
 
@@ -48,5 +48,3 @@ when isMainModule:
   # 後でオプションで表示切替
   # デフォルト非表示
   echo jstring # jqと同じように、JSONを解釈してstdoutへ表示する
-
-  echo len(jobj)
