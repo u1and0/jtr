@@ -26,11 +26,9 @@ import json, strformat, strutils
 
 proc objectTree*(jobj: JsonNode, indent: string = ""): string =
   var nextIndent: string
-  const defaultIndent: string = " ".repeat(4)
-  var res: string
+  var res: seq[string]
   var branch: string = "├── "
   for k, v in jobj.pairs:
-    # echo &"key: {k}, val: {$v}"
     let types: string = case v.kind
       of JNull: "<null>"
       of JString: "<string>"
@@ -39,16 +37,19 @@ proc objectTree*(jobj: JsonNode, indent: string = ""): string =
       of JInt: "<int>"
       of JArray: "<array>"
       of JObject: "\n" & objectTree(v, nextIndent)
-    res &= &"{indent}{branch}{k} {types}\n"
-    nextIndent = indent & defaultIndent
-  return res
+    res.add(&"{indent}{branch}{k} {types}")
+    nextIndent = indent & " ".repeat(4)
+  return res.join("\n")
 
 when isMainModule:
   let line = stdin.readLine
   let jobj = line.parseJson()
   let jstring = jobj.pretty()
-  echo jstring # jqと同じように、JSONを解釈してstdoutへ表示する
 
   echo "."
   echo objectTree(jobj)
 
+  # TODO
+  # 後でオプションで表示切替
+  # デフォルト非表示
+  echo jstring # jqと同じように、JSONを解釈してstdoutへ表示する
