@@ -1,5 +1,6 @@
 /nimcache/
 /jtr
 /testresults/
-/tests/testjtr
+/tests/
+!/tests/*.nim
 /*.md

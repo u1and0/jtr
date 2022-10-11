@@ -15,14 +15,15 @@ import json, strformat, strutils
 func lastOne(i, length: int): bool =
   i >= length-1
 
-func objectTree*(jobj: JsonNode, indent: string = ""): string =
-  var nextIndent: string
+func objectTree*(jobj: JsonNode, indent = ""): string =
   var res: seq[string]
-  var branch: string = "├── "
+  var branch = "├── "
+  var nextIndent = indent & "│" & " ".repeat(3)
   var i: int
   for key, val in jobj.pairs:
     if lastOne(i, len(jobj)):
       branch = "└── "
+      nextIndent = indent & " ".repeat(4)
     let types: string = case val.kind
       of JNull: "<null>"
       of JString: "<string>"
@@ -32,7 +33,6 @@ func objectTree*(jobj: JsonNode, indent: string = ""): string =
       of JArray: "<array>"
       of JObject: "\n" & objectTree(val, nextIndent)
     res.add(&"{indent}{branch}{key} {types}")
-    nextIndent = indent & "│" & " ".repeat(3)
     i += 1
   return res.join("\n")
 
