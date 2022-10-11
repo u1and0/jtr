@@ -18,21 +18,22 @@ func lastOne(i, length: int): bool =
 func arrayTree(jarray: JsonNode): string =
   var typesArr: seq[JsonNodeKind]
   for val in jarray:
-    # let types: string = case val.kind
-    #   of JNull: "<null>"
-    #   of JString: "<string>"
-    #   of JBool: "<bool>"
-    #   of JFloat: "<float>"
-    #   of JInt: "<int>"
-    #   of JArray: "<array>" & arrayTree(val)
-    #   of JObject: "\n" & "obj"
-      # of JObject: "\n" & objectTree(val, nextIndent)
     typesArr.add(val.kind)
   var typesall: string
-  if all(typesArr, proc(x: JsonNodeKind): bool = x == JString):
+  if all(typesArr, proc(x: JsonNodeKind): bool = x == JNull):
+    typesall = "[null]"
+  elif all(typesArr, proc(x: JsonNodeKind): bool = x == JString):
     typesall = "[string]"
+  elif all(typesArr, proc(x: JsonNodeKind): bool = x == JBool):
+    typesall = "[bool]"
+  elif all(typesArr, proc(x: JsonNodeKind): bool = x == JFloat):
+    typesall = "[float32]"
   elif all(typesArr, proc(x: JsonNodeKind): bool = x == JInt):
     typesall = "[int]"
+  elif all(typesArr, proc(x: JsonNodeKind): bool = x == JArray):
+    typesall = "[array]"
+  elif all(typesArr, proc(x: JsonNodeKind): bool = x == JObject):
+    typesall = "[any]"
   return &"{typesall}"
 
 
