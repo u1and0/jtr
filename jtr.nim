@@ -12,6 +12,8 @@ $ echo '{"foo": "0", "obj": {"bar":1, "baz":"2"}, "name": "ken"}' | ./jtr
 
 import json, strformat, strutils, sequtils, sugar
 
+const VERSION = "v0.2.2"
+
 func lastOne(i, length: int): bool =
   i >= length-1
 
@@ -75,10 +77,41 @@ func rootTree*(jnode: JsonNode): string =
     of JArray: &"<array{arrayTree(jnode)}"
     of JObject: ".\n" & objectTree(jnode, "")
 
-when isMainModule:
+proc showHelp() =
+  echo """jtr is a commmand of JSON tree viewer with type
+
+usage:
+  $ echo '{"foo": "0", "obj": {"bar":1, "baz":"2"}, "name": "ken"}' | jtr
+  .
+  ├── foo <string>
+  ├── obj
+  │   ├── bar <int>
+  │   └── baz <string>
+  └── name <string>
+"""
+
+proc main() =
   let line = stdin.readAll
   let jnode = line.parseJson()
   echo rootTree(jnode)
+
+when isMainModule:
+  import os, parseopt
+  let args = commandLineParams()
+  for kind, key, val in getopt(args):
+    case kind
+    of cmdLongOption, cmdShortOption:
+      case key
+      of "help", "h":
+        showHelp()
+        quit(0)
+      of "version", "v":
+        echo VERSION
+        quit(0)
+    of cmdArgument, cmdEnd:
+      showHelp()
+      quit(1)
+  main()
 
   # TODO
   # 後でオプションで表示切替
