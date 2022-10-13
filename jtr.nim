@@ -117,6 +117,15 @@ func walk*(node: JsonNode, props: seq[string]): JsonNode =
     return node
   return walk(node[props[0]], props[1..^1])
 
+proc parseProperty*(s: string): seq[string] =
+  ## parse '.obj.path.to.field' like jq command
+  if not s.startswith("."): # jq errorのまね
+    echo s & "/0 is not defined at <top-level>, line 1: " & s
+    raise
+  if s == ".":
+    return @[]
+  return s[1..^1].split(".", -1)
+
 proc main(showjq: bool = false, root = ".") =
   ## Tree view entry point
   let line = stdin.readAll
