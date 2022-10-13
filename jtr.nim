@@ -12,7 +12,7 @@ $ echo '{"foo": "0", "obj": {"bar":1, "baz":"2"}, "name": "ken"}' | ./jtr
 
 import json, strformat, strutils, sequtils, sugar
 
-const VERSION = "v0.2.3"
+const VERSION = "v0.2.3r"
 
 # 前方宣言
 # objectTree()内でarrayTree()を使う相互再帰のため、
@@ -20,6 +20,7 @@ const VERSION = "v0.2.3"
 func arrayTree(jarray: JsonNode, indent = ""): string
 
 func objectTree(jobj: JsonNode, indent = ""): string =
+  ## Tree view for type of object elemnts recursively
   var
     res: seq[string]
     i: int
@@ -45,6 +46,7 @@ func objectTree(jobj: JsonNode, indent = ""): string =
   return res.join("\n")
 
 func arrayTree(jarray: JsonNode, indent = ""): string =
+  ## Tree view for type of array elemnts recursively
   let typesArr: seq[JsonNodeKind] = collect:
     for val in jarray: val.kind
   if all(typesArr, func(x: JsonNodeKind): bool = x == JNull):
@@ -66,6 +68,7 @@ func arrayTree(jarray: JsonNode, indent = ""): string =
     return "[]any"
 
 func rootTree*(jnode: JsonNode): string =
+  ## Tree view for type of plain JSON recursively
   case jnode.kind
     of JNull: "<null>"
     of JBool: "<bool>"
@@ -88,14 +91,20 @@ usage:
   └── name <string>
 """
 
-proc main() =
+proc main(showjq: bool = false) =
+  ## Tree view entry point
   let line = stdin.readAll
   let jnode = line.parseJson()
   echo rootTree(jnode)
+  if showjq: # jqと同じように、JSONを解釈してstdoutへ表示する
+    echo jnode.pretty()
 
 when isMainModule:
   import os, parseopt
   let args = commandLineParams()
+  if len(args) == 0:
+    main()
+    quit(0)
   for kind, key, val in getopt(args):
     case kind
     of cmdLongOption, cmdShortOption:
@@ -106,13 +115,8 @@ when isMainModule:
       of "version", "v":
         echo VERSION
         quit(0)
+      of "jq", "q":
+        main(showjq = true)
     of cmdArgument, cmdEnd:
       showHelp()
       quit(1)
-  main()
-
-  # TODO
-  # 後でオプションで表示切替
-  # デフォルト非表示
-  # let jstring = jnode.pretty()
-  # echo jstring # jqと同じように、JSONを解釈してstdoutへ表示する
