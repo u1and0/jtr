@@ -40,7 +40,7 @@ func objectTree(jobj: JsonNode, indent = ""): string =
       of JString: " <string>"
       of JInt: " <int>"
       of JFloat: " <float>"
-      of JArray: &" <array{arrayTree(val)}"
+      of JArray: " " & arrayTree(val)
       of JObject: "\n" & objectTree(val, nextIndent)
     res.add(&"{indent}{branch}{key}{types}")
     i += 1
@@ -50,22 +50,21 @@ func arrayTree(jarray: JsonNode): string =
   let typesArr: seq[JsonNodeKind] = collect:
     for val in jarray: val.kind
   if all(typesArr, func(x: JsonNodeKind): bool = x == JNull):
-    return "[null]>"
+    return "[]null"
   elif all(typesArr, func(x: JsonNodeKind): bool = x == JBool):
-    return "[bool]>"
+    return "[]bool"
   elif all(typesArr, func(x: JsonNodeKind): bool = x == JString):
-    return "[string]>"
+    return "[]string"
   elif all(typesArr, func(x: JsonNodeKind): bool = x == JInt):
-    return "[int]>"
+    return "[]int"
   elif all(typesArr, func(x: JsonNodeKind): bool = x == JFloat):
-    return "[float]>"
+    return "[]float"
   elif all(typesArr, func(x: JsonNodeKind): bool = x == JArray):
-    return "[array]>"
+    return "[]" & arrayTree(jarray[0])
   elif all(typesArr, func(x: JsonNodeKind): bool = x == JObject):
-    let tree = objectTree(jarray[0], " ".repeat(7))
-    return "[.]>\n" & tree
+    return "[].\n" & objectTree(jarray[0], " ".repeat(2))
   else: # 全ての型が一致しない場合
-    return "[any]>"
+    return "[]any"
 
 func rootTree*(jnode: JsonNode): string =
   case jnode.kind
@@ -74,7 +73,7 @@ func rootTree*(jnode: JsonNode): string =
     of JString: "<string>"
     of JInt: "<int>"
     of JFloat: "<float>"
-    of JArray: &"<array{arrayTree(jnode)}"
+    of JArray: arrayTree(jnode)
     of JObject: ".\n" & objectTree(jnode, "")
 
 proc showHelp() =
