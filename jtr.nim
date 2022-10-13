@@ -12,7 +12,7 @@ $ echo '{"foo": "0", "obj": {"bar":1, "baz":"2"}, "name": "ken"}' | ./jtr
 
 import json, strformat, strutils, sequtils, sugar
 
-const VERSION = "v0.2.2"
+const VERSION = "v0.2.2r"
 
 func lastOne(i, length: int): bool =
   i >= length-1
@@ -20,7 +20,7 @@ func lastOne(i, length: int): bool =
 # 前方宣言
 # objectTree()内でarrayTree()を使う相互再帰のため、
 # 先に宣言が必要
-func arrayTree(jarray: JsonNode): string
+func arrayTree(jarray: JsonNode, indent = ""): string
 
 func objectTree(jobj: JsonNode, indent = ""): string =
   var
@@ -40,13 +40,13 @@ func objectTree(jobj: JsonNode, indent = ""): string =
       of JString: " <string>"
       of JInt: " <int>"
       of JFloat: " <float>"
-      of JArray: " " & arrayTree(val)
+      of JArray: " " & arrayTree(val, nextIndent)
       of JObject: "\n" & objectTree(val, nextIndent)
     res.add(&"{indent}{branch}{key}{types}")
     i += 1
   return res.join("\n")
 
-func arrayTree(jarray: JsonNode): string =
+func arrayTree(jarray: JsonNode, indent = ""): string =
   let typesArr: seq[JsonNodeKind] = collect:
     for val in jarray: val.kind
   if all(typesArr, func(x: JsonNodeKind): bool = x == JNull):
@@ -62,7 +62,8 @@ func arrayTree(jarray: JsonNode): string =
   elif all(typesArr, func(x: JsonNodeKind): bool = x == JArray):
     return "[]" & arrayTree(jarray[0])
   elif all(typesArr, func(x: JsonNodeKind): bool = x == JObject):
-    return "[].\n" & objectTree(jarray[0], " ".repeat(2))
+    let nextIndent = indent & " ".repeat(2)
+    return "[].\n" & objectTree(jarray[0], nextIndent)
   else: # 全ての型が一致しない場合
     return "[]any"
 
@@ -74,7 +75,7 @@ func rootTree*(jnode: JsonNode): string =
     of JInt: "<int>"
     of JFloat: "<float>"
     of JArray: arrayTree(jnode)
-    of JObject: ".\n" & objectTree(jnode, "")
+    of JObject: ".\n" & objectTree(jnode)
 
 proc showHelp() =
   echo """jtr is a commmand of JSON tree viewer with type

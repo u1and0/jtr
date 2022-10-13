@@ -3,7 +3,7 @@ import json, ../jtr
 discard """
   output: '''
 .
-└── foo <array[int]>
+└── foo []int
 '''
 """
 

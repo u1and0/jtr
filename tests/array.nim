@@ -8,6 +8,7 @@ discard """
 []int
 []float
 []any
+[][]int
 [].
   └── foo
       ├── bar <int>
@@ -15,13 +16,14 @@ discard """
 '''
 """
 
-echo rootTree(parseJson("[null,null,null]"))
-echo rootTree(parseJson("[true,false,false]"))
-echo rootTree(parseJson("[\"cat\", \"dog\"]"))
-echo rootTree(parseJson("[1,2,3]"))
-echo rootTree(parseJson("[1.0,10.0,100.0]"))
-echo rootTree(parseJson("[1,\"2\",3]"))
-const line = """
+echo rootTree(parseJson("[null,null,null]")) # null type array
+echo rootTree(parseJson("[true,false,false]")) # bool type array
+echo rootTree(parseJson("[\"cat\", \"dog\"]")) # string type array
+echo rootTree(parseJson("[1,2,3]")) # int type array
+echo rootTree(parseJson("[1.0,10.0,100.0]")) # float type array
+echo rootTree(parseJson("[1,\"2\",3]")) # mixed type type array
+echo rootTree(parseJson("[[1,2,3]]")) # nested array
+echo rootTree(parseJson("""
 [
   {
     "foo":{
@@ -36,5 +38,4 @@ const line = """
     }
   }
 ]
-"""
-echo rootTree(parseJson(line))
+"""))
