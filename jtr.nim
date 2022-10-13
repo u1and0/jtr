@@ -12,7 +12,12 @@ $ echo '{"foo": "0", "obj": {"bar":1, "baz":"2"}, "name": "ken"}' | ./jtr
 
 import json, strformat, strutils, sequtils, sugar
 
-const VERSION = "v0.2.3r"
+const VERSION = "v0.2.4"
+
+type Option = tuple [
+  showjq: bool,
+  props: seq[string]
+]
 
 # 前方宣言
 # objectTree()内でarrayTree()を使う相互再帰のため、
@@ -126,23 +131,18 @@ proc parseProperty*(s: string): seq[string] =
     return @[]
   return s[1..^1].split(".", -1)
 
-proc main(showjq: bool = false, root = ".") =
+proc main(showjq: bool = false, props: seq[string]) =
   ## Tree view entry point
   let line = stdin.readAll
-  let jnode = line.parseJson()
-  if root != ".":
-    echo rootTree(jnode[root])
-  else:
-    echo rootTree(jnode)
+  let jnode = line.parseJson().walk(props)
+  echo rootTree(jnode)
   if showjq: # jqと同じように、JSONを解釈してstdoutへ表示する
     echo jnode.pretty()
 
 when isMainModule:
   import os, parseopt
   let args = commandLineParams()
-  if len(args) == 0:
-    main()
-    quit(0)
+  var opt: Option
   for kind, key, val in getopt(args):
     case kind
     of cmdLongOption, cmdShortOption:
@@ -154,7 +154,10 @@ when isMainModule:
         echo VERSION
         quit(0)
       of "jq", "q":
-        main(showjq = true)
-    of cmdArgument, cmdEnd:
+        opt.showjq = true
+    of cmdArgument:
+      opt.props = parseProperty(key)
+    of cmdEnd:
       showHelp()
       quit(1)
+  main(opt.showjq, opt.props)
