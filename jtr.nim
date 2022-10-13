@@ -91,11 +91,19 @@ usage:
   └── name <string>
 """
 
-proc main(showjq: bool = false) =
+func jsonRecurse*(j: JsonNode, access: seq[string]): JsonNode =
+  if access.len() == 0:
+    return j
+  return jsonRecurse(j[access[0]], access[1..^1])
+
+proc main(showjq: bool = false, root = ".") =
   ## Tree view entry point
   let line = stdin.readAll
   let jnode = line.parseJson()
-  echo rootTree(jnode)
+  if root != ".":
+    echo rootTree(jnode[root])
+  else:
+    echo rootTree(jnode)
   if showjq: # jqと同じように、JSONを解釈してstdoutへ表示する
     echo jnode.pretty()
 
