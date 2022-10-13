@@ -91,10 +91,31 @@ usage:
   └── name <string>
 """
 
-func jsonRecurse*(j: JsonNode, access: seq[string]): JsonNode =
-  if access.len() == 0:
-    return j
-  return jsonRecurse(j[access[0]], access[1..^1])
+func walk*(node: JsonNode, props: seq[string]): JsonNode =
+  ## JSON property access
+  ##
+  ## {
+  ##   "foo": "0",
+  ##     "obj": {
+  ##       "bar": 1,
+  ##       "baz": "2",
+  ##       "nex": {
+  ##         "coffee": 5,
+  ##         "juice": "20",
+  ##         "some": {            <-* To access here
+  ##           "apple": "iphone",
+  ##           "google": "android"
+  ##         }
+  ##       },
+  ##     },
+  ##   "name": "ken"
+  ## }
+  ##
+  ## walk(jsonnode, @["obj", "nex", "some"])
+  ##
+  if props.len() == 0:
+    return node
+  return walk(node[props[0]], props[1..^1])
 
 proc main(showjq: bool = false, root = ".") =
   ## Tree view entry point
