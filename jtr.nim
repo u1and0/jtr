@@ -12,10 +12,7 @@ $ echo '{"foo": "0", "obj": {"bar":1, "baz":"2"}, "name": "ken"}' | ./jtr
 
 import json, strformat, strutils, sequtils, sugar
 
-const VERSION = "v0.2.2r"
-
-func lastOne(i, length: int): bool =
-  i >= length-1
+const VERSION = "v0.2.3"
 
 # 前方宣言
 # objectTree()内でarrayTree()を使う相互再帰のため、
@@ -27,8 +24,9 @@ func objectTree(jobj: JsonNode, indent = ""): string =
     res: seq[string]
     i: int
     branch, nextIndent: string
+  let lastOne = func(i: int): bool = i >= len(jobj)-1
   for key, val in jobj.pairs:
-    if lastOne(i, len(jobj)):
+    if lastOne(i):
       branch = "└── "
       nextIndent = indent & " ".repeat(4)
     else:
