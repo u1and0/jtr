@@ -132,32 +132,37 @@ proc parseProperty*(s: string): seq[string] =
   return s[1..^1].split(".", -1)
 
 proc main(showjq: bool = false, props: seq[string]) =
-  ## Tree view entry point
   let line = stdin.readAll
   let jnode = line.parseJson().walk(props)
   echo rootTree(jnode)
   if showjq: # jqと同じように、JSONを解釈してstdoutへ表示する
     echo jnode.pretty()
 
+
 when isMainModule:
   import os, parseopt
-  let args = commandLineParams()
-  var opt: Option
-  for kind, key, val in getopt(args):
-    case kind
-    of cmdLongOption, cmdShortOption:
-      case key
-      of "help", "h":
+
+  proc parseCommandLine(): Option =
+    let args = commandLineParams()
+    var opt: Option
+    for kind, key, val in getopt(args):
+      case kind
+      of cmdLongOption, cmdShortOption:
+        case key
+        of "help", "h":
+          showHelp()
+          quit(0)
+        of "version", "v":
+          echo VERSION
+          quit(0)
+        of "jq", "q":
+          opt.showjq = true
+      of cmdArgument:
+        opt.props = parseProperty(key)
+      of cmdEnd:
         showHelp()
-        quit(0)
-      of "version", "v":
-        echo VERSION
-        quit(0)
-      of "jq", "q":
-        opt.showjq = true
-    of cmdArgument:
-      opt.props = parseProperty(key)
-    of cmdEnd:
-      showHelp()
-      quit(1)
+        quit(1)
+    return opt
+
+  let opt = parseCommandLine()
   main(opt.showjq, opt.props)
