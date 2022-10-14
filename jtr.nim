@@ -19,6 +19,28 @@ type Option = tuple [
   props: seq[string]
 ]
 
+func collectKeys*(jnode: JsonNode): seq[string] =
+  ## Collect all keys of JSON object
+  if jnode.kind != JObject:
+    return @[]
+  for k, v in jnode:
+    result.add(k)
+    if v.kind == JObject:
+      result = concat(result, collectKeys(v))
+
+func seekLargestObject*(jarray: JsonNode): JsonNode =
+  ## Get most number of key object
+  if jarray.kind != JArray:
+    result = jarray
+  result = jarray[0]
+  if len(jarray) == 1:
+    return
+  for jnode in jarray[1..^1]:
+    let a = collectKeys(jnode).len()
+    let b = collectKeys(result).len()
+    if a > b:
+      result = jnode
+
 # 前方宣言
 # objectTree()内でarrayTree()を使う相互再帰のため、
 # 先に宣言が必要
@@ -68,7 +90,8 @@ func arrayTree(jarray: JsonNode, indent = ""): string =
     return "[]" & arrayTree(jarray[0])
   elif all(typesArr, func(x: JsonNodeKind): bool = x == JObject):
     let nextIndent = indent & " ".repeat(2)
-    return "[].\n" & objectTree(jarray[0], nextIndent)
+    let largestObj = seekLargestObject(jarray)
+    return "[].\n" & objectTree(largestObj, nextIndent)
   else: # 全ての型が一致しない場合
     return "[]any"
 
@@ -121,28 +144,6 @@ func walk*(node: JsonNode, props: seq[string]): JsonNode =
   if props.len() == 0:
     return node
   return walk(node[props[0]], props[1..^1])
-
-func collectKeys*(jnode: JsonNode): seq[string] =
-  ## Collect all keys of JSON object
-  if jnode.kind != JObject:
-    return @[]
-  for k, v in jnode:
-    result.add(k)
-    if v.kind == JObject:
-      result = concat(result, collectKeys(v))
-
-func seekLargestObject*(jarray: JsonNode): JsonNode =
-  ## Get most number of key object
-  if jarray.kind != JArray:
-    result = jarray
-  result = jarray[0]
-  if len(jarray) == 1:
-    return
-  for jnode in jarray[1..^1]:
-    let a = collectKeys(jnode).len()
-    let b = collectKeys(result).len()
-    if a > b:
-      result = jnode
 
 proc parseProperty*(s: string): seq[string] =
   ## parse '.obj.path.to.field' like jq command

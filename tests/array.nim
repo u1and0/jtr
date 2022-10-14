@@ -12,7 +12,8 @@ discard """
 [].
   └── foo
       ├── bar <int>
-      └── baz <string>
+      ├── baz <string>
+      └── cat <null>
 '''
 """
 
@@ -34,8 +35,9 @@ echo rootTree(parseJson("""
   {
     "foo":{
       "bar": 2,
-      "baz": "signal"
+      "baz": "signal",
+      "cat": null
     }
   }
 ]
-"""))
+""")) # object array
