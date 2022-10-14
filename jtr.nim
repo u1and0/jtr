@@ -122,6 +122,12 @@ func walk*(node: JsonNode, props: seq[string]): JsonNode =
     return node
   return walk(node[props[0]], props[1..^1])
 
+func collectKeys*(jnode: JsonNode): seq[string] =
+  for k, v in jnode:
+    result.add(k)
+    if v.kind == JObject:
+      result = concat(result, collectKeys(v))
+
 proc parseProperty*(s: string): seq[string] =
   ## parse '.obj.path.to.field' like jq command
   if not s.startswith("."): # jq errorのまね

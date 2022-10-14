@@ -1,4 +1,4 @@
-import json, ../jtr
+import json, ../jtr, sequtils
 
 discard """
   output: '''
