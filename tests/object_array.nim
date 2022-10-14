@@ -4,10 +4,43 @@ discard """
   output: '''
 .
 └── foo []int
+.
+├── foo <float>
+├── baz [].
+│     └── foo
+│         ├── bar <int>
+│         ├── baz <string>
+│         └── cat <null>
+└── login <bool>
 '''
 """
 
-const line = """
+# Simple object of array
+var obj = """
 {"foo": [1,2,3]}
 """
-echo rootTree(line.parseJson())
+echo rootTree(obj.parseJson())
+
+# Simple object of array
+obj = """
+{
+  "foo": 5.0,
+  "baz": [
+    {
+      "foo": {
+        "bar": 100,
+        "baz": "click",
+        "cat": null
+      }
+    },
+    {
+      "foo": {
+        "bar": 64,
+        "cat": null
+      }
+    }
+  ],
+  "login": true
+}
+"""
+echo rootTree(obj.parseJson())
