@@ -52,8 +52,8 @@ const line = """
 """
 let js = line.parseJson
 echo "obj object"
-echo walk(js, @["obj"]).pretty
+echo walkNode(js, @["obj"]).pretty
 echo "nex object"
-echo walk(js, @["obj", "nex"]).pretty
+echo walkNode(js, @["obj", "nex"]).pretty
 echo "some object"
-echo walk(js, @["obj", "nex", "some"]).pretty
+echo walkNode(js, @["obj", "nex", "some"]).pretty
