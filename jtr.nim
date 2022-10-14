@@ -14,13 +14,6 @@
 
 import json, strformat, strutils, sequtils, sugar
 
-const VERSION = "v0.2.4r"
-
-type Option = tuple [
-  showjq: bool,
-  props: seq[string]
-]
-
 func collectKeys*(jnode: JsonNode): seq[string] =
   ## Collect all keys of JSON object
   if jnode.kind != JObject:
@@ -116,26 +109,6 @@ func rootTree*(jnode: JsonNode): string =
     of JArray: arrayTree(jnode)
     of JObject: ".\n" & objectTree(jnode)
 
-proc showHelp() =
-  echo """jtr is a commmand of JSON tree viewer with type
-
-usage:
-  $ echo {"foo":5.0,"baz":[{"foo":{"bar":100,"baz":"click","cat":null}},],"login":true} | ./jtr
-  .
-  ├── foo <float>
-  ├── baz [].
-  │     └── foo
-  │         ├── bar <int>
-  │         ├── baz <string>
-  │         └── cat <null>
-  └── login <bool>
-
-options:
-  --jq, -q          Display jq view
-  --help, -h        Show help message
-  --version, -v     Show version
-"""
-
 func walkNode*(node: JsonNode, props: seq[string]): JsonNode =
   ## JSON property access
   ##
@@ -180,8 +153,36 @@ proc parseProperty*(s: string): seq[string] =
     return @[]
   return s[1..^1].split(".", -1)
 
+
 when isMainModule:
   import os, parseopt
+
+  const VERSION = "v0.2.5"
+
+  type Option = tuple [
+    showjq: bool,
+    props: seq[string]
+  ]
+
+  proc showHelp() =
+    echo """jtr is a commmand of JSON tree viewer with type
+
+  usage:
+    $ echo {"foo":5.0,"baz":[{"foo":{"bar":100,"baz":"click","cat":null}},],"login":true} | ./jtr
+    .
+    ├── foo <float>
+    ├── baz [].
+    │     └── foo
+    │         ├── bar <int>
+    │         ├── baz <string>
+    │         └── cat <null>
+    └── login <bool>
+
+  options:
+    --jq, -q          Display jq view
+    --help, -h        Show help message
+    --version, -v     Show version
+  """
 
   proc treeViewEntryPoint(showjq: bool = false, props: seq[string]) =
     let line = stdin.readAll
