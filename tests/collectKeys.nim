@@ -5,30 +5,37 @@ discard """
 @["foo", "bar", "baz"]
 @["foo", "baz", "apple", "cd", "banana"]
 @[]
+@[]
 '''
 """
 
-let jarray = """
-[
-  {
-    "foo":{
-      "bar": 1,
-      "baz": "key"
-    }
-  },
-  {
-    "foo":{
-      "baz": {
-        "apple": 1,
-      },
-      "cd": {
-        "banana": 3
-      }
-    }
-  },
-  "str"
-]
-""".parseJson
+var jnode = """
+{
+  "foo":{
+    "bar": 1,
+    "baz": "key"
+  }
+}
+"""
+echo collectKeys(jnode.parseJson)
 
-for jnode in jarray:
-  echo collectKeys(jnode)
+jnode = """
+{
+  "foo":{
+    "baz": {
+      "apple": 1,
+    },
+    "cd": {
+      "banana": 3
+    }
+  }
+}
+"""
+echo collectKeys(jnode.parseJson)
+
+# object 以外は空のseqを返す
+jnode = "\"str\""
+echo collectKeys(jnode.parseJson)
+
+jnode = "[1, 2, 3]"
+echo collectKeys(jnode.parseJson)

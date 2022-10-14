@@ -124,6 +124,8 @@ func walk*(node: JsonNode, props: seq[string]): JsonNode =
 
 func collectKeys*(jnode: JsonNode): seq[string] =
   ## Collect all keys of JSON object
+  if jnode.kind != JObject:
+    return @[]
   for k, v in jnode:
     result.add(k)
     if v.kind == JObject:
