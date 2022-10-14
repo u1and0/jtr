@@ -3,21 +3,28 @@ jtr is a commmand of JSON tree viewer with type
 # Example
 
 ```bash
-$ echo '{"foo": "0", "obj": {"bar":1, "baz":"2"}, "name": "ken"}' | jq
+$ echo '{"foo":5.0,"baz":[{"foo":{"bar":100,"baz":"click","cat":null}}],"login":true}' | jq
 {
-  "foo": "0",
-  "obj": {
-    "bar": 1,
-    "baz": "2"
-  },
-  "name": "ken"
+  "foo": 5,
+  "baz": [
+    {
+      "foo": {
+        "bar": 100,
+        "baz": "click",
+        "cat": null
+      }
+    }
+  ],
+  "login": true
 }
 
-$ echo '{"foo": "0", "obj": {"bar":1, "baz":"2"}, "name": "ken"}' | jtr
+$ echo '{"foo":5.0,"baz":[{"foo":{"bar":100,"baz":"click","cat":null}}],"login":true}' | jtr
 .
-├── foo <string>
-├── obj
-│   ├── bar <int>
-│   └── baz <string>
-└── name <string>
+├── foo <float>
+├── baz [].
+│     └── foo
+│         ├── bar <int>
+│         ├── baz <string>
+│         └── cat <null>
+└── login <bool>
 ```
