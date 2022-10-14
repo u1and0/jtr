@@ -123,10 +123,24 @@ func walk*(node: JsonNode, props: seq[string]): JsonNode =
   return walk(node[props[0]], props[1..^1])
 
 func collectKeys*(jnode: JsonNode): seq[string] =
+  ## Collect all keys of JSON object
   for k, v in jnode:
     result.add(k)
     if v.kind == JObject:
       result = concat(result, collectKeys(v))
+
+func seekLargestObject*(jarray: JsonNode): JsonNode =
+  ## Get most number of key object
+  if jarray.kind != JArray:
+    result = jarray
+  result = jarray[0]
+  if len(jarray) == 1:
+    return
+  for jnode in jarray[1..^1]:
+    let a = collectKeys(jnode).len()
+    let b = collectKeys(result).len()
+    if a > b:
+      result = jnode
 
 proc parseProperty*(s: string): seq[string] =
   ## parse '.obj.path.to.field' like jq command

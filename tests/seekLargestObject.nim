@@ -2,20 +2,12 @@ import json, ../jtr
 
 discard """
   output: '''
-@["foo", "bar", "baz"]
-@["foo", "baz", "apple", "cd", "banana"]
-@[]
+{"foo":{"baz":{"apple":1},"cd":{"banana":3}}}
 '''
 """
 
 let jarray = """
 [
-  {
-    "foo":{
-      "bar": 1,
-      "baz": "key"
-    }
-  },
   {
     "foo":{
       "baz": {
@@ -26,9 +18,13 @@ let jarray = """
       }
     }
   },
-  "str"
+  {
+    "foo":{
+      "bar": 1,
+      "baz": "key"
+    }
+  }
 ]
 """.parseJson
 
-for jnode in jarray:
-  echo collectKeys(jnode)
+echo seekLargestObject(jarray)
