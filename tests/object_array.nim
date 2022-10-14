@@ -21,7 +21,7 @@ var obj = """
 """
 echo rootTree(obj.parseJson())
 
-# Simple object of array
+# Nested object of array
 obj = """
 {
   "foo": 5.0,

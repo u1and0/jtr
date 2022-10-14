@@ -1,14 +1,16 @@
-#[
-JSON構造体のツリー表示をする
-
-$ echo '{"foo": "0", "obj": {"bar":1, "baz":"2"}, "name": "ken"}' | ./jtr
-.
-├── foo <string>
-├── obj
-│   ├── bar <int>
-│   └── baz <string>
-└── name <string>
-]#
+## jtr is a commmand of JSON tree viewer with type
+##
+## ```
+## $ echo {"foo":5.0,"baz":[{"foo":{"bar":100,"baz":"click","cat":null}},],"login":true} | ./jtr
+## .
+## ├── foo <float>
+## ├── baz [].
+## │     └── foo
+## │         ├── bar <int>
+## │         ├── baz <string>
+## │         └── cat <null>
+## └── login <bool>
+## ```
 
 import json, strformat, strutils, sequtils, sugar
 
@@ -97,6 +99,14 @@ func arrayTree(jarray: JsonNode, indent = ""): string =
 
 func rootTree*(jnode: JsonNode): string =
   ## Tree view for type of plain JSON recursively
+  ##
+  ## ```nim
+  ## doAssert rootTree(parseJson("null")) == <null>
+  ## doAssert rootTree(parseJson("true")) == <bool>
+  ## doAssert rootTree(parseJson("\"5\"")) == <string>
+  ## doAssert rootTree(parseJson($5.0)) == <float>
+  ## doAssert rootTree(parseJson($5)) == <int>
+  ## ```
   case jnode.kind
     of JNull: "<null>"
     of JBool: "<bool>"
@@ -110,19 +120,27 @@ proc showHelp() =
   echo """jtr is a commmand of JSON tree viewer with type
 
 usage:
-  $ echo '{"foo": "0", "obj": {"bar":1, "baz":"2"}, "name": "ken"}' | jtr
+  $ echo {"foo":5.0,"baz":[{"foo":{"bar":100,"baz":"click","cat":null}},],"login":true} | ./jtr
   .
-  ├── foo <string>
-  ├── obj
-  │   ├── bar <int>
-  │   └── baz <string>
-  └── name <string>
+  ├── foo <float>
+  ├── baz [].
+  │     └── foo
+  │         ├── bar <int>
+  │         ├── baz <string>
+  │         └── cat <null>
+  └── login <bool>
+
+options:
+  --jq, -q          Display jq view
+  --help, -h        Show help message
+  --version, -v     Show version
 """
 
 func walkNode*(node: JsonNode, props: seq[string]): JsonNode =
   ## JSON property access
   ##
-  ## {
+  ## ```nim
+  ## let js = {
   ##   "foo": "0",
   ##     "obj": {
   ##       "bar": 1,
@@ -130,17 +148,18 @@ func walkNode*(node: JsonNode, props: seq[string]): JsonNode =
   ##       "nex": {
   ##         "coffee": 5,
   ##         "juice": "20",
-  ##         "some": {      <-* To access here
+  ##         "some": {      <- To access here
   ##           "apple": "iphone",
   ##           "google": "android"
   ##         }
   ##       },
   ##     },
   ##   "name": "ken"
-  ## }
+  ## }.parseJson
+  ## let access = @["obj", "nex", "some"]
   ##
-  ## walkNode(jsonnode, @["obj", "nex", "some"])
-  ##
+  ## doAssert walkNode(js, access) == "{\"apple\":\"iphone\",\"google\":\"android\"}"
+  ## ```
   if props.len() == 0:
     return node
   let
@@ -150,6 +169,10 @@ func walkNode*(node: JsonNode, props: seq[string]): JsonNode =
 
 proc parseProperty*(s: string): seq[string] =
   ## parse '.obj.path.to.field' like jq command
+  ##
+  ## ```nim
+  ## doAssert parseProperty(".obj.nex.some") == @["obj", "nex", "some"]
+  ## ```
   if not s.startswith("."): # jq errorのまね
     echo s & "/0 is not defined at <top-level>, line 1: " & s
     raise
@@ -157,16 +180,15 @@ proc parseProperty*(s: string): seq[string] =
     return @[]
   return s[1..^1].split(".", -1)
 
-proc treeViewEntryPoint(showjq: bool = false, props: seq[string]) =
-  let line = stdin.readAll
-  let jnode = line.parseJson().walkNode(props)
-  echo rootTree(jnode)
-  if showjq: # jqと同じように、JSONを解釈してstdoutへ表示する
-    echo jnode.pretty()
-
-
 when isMainModule:
   import os, parseopt
+
+  proc treeViewEntryPoint(showjq: bool = false, props: seq[string]) =
+    let line = stdin.readAll
+    let jnode = line.parseJson().walkNode(props)
+    echo rootTree(jnode)
+    if showjq: # jqと同じように、JSONを解釈してstdoutへ表示する
+      echo jnode.pretty()
 
   proc parseCommandLine(): Option =
     for kind, key, val in commandLineParams().getopt():
