@@ -119,7 +119,7 @@ usage:
   └── name <string>
 """
 
-func walk*(node: JsonNode, props: seq[string]): JsonNode =
+func walkNode*(node: JsonNode, props: seq[string]): JsonNode =
   ## JSON property access
   ##
   ## {
@@ -130,7 +130,7 @@ func walk*(node: JsonNode, props: seq[string]): JsonNode =
   ##       "nex": {
   ##         "coffee": 5,
   ##         "juice": "20",
-  ##         "some": {            <-* To access here
+  ##         "some": {      <-* To access here
   ##           "apple": "iphone",
   ##           "google": "android"
   ##         }
@@ -139,11 +139,14 @@ func walk*(node: JsonNode, props: seq[string]): JsonNode =
   ##   "name": "ken"
   ## }
   ##
-  ## walk(jsonnode, @["obj", "nex", "some"])
+  ## walkNode(jsonnode, @["obj", "nex", "some"])
   ##
   if props.len() == 0:
     return node
-  return walk(node[props[0]], props[1..^1])
+  let
+    firstNode = node[props[0]]
+    restProps = props[1..^1]
+  return walkNode(firstNode, restProps)
 
 proc parseProperty*(s: string): seq[string] =
   ## parse '.obj.path.to.field' like jq command
@@ -156,7 +159,7 @@ proc parseProperty*(s: string): seq[string] =
 
 proc main(showjq: bool = false, props: seq[string]) =
   let line = stdin.readAll
-  let jnode = line.parseJson().walk(props)
+  let jnode = line.parseJson().walkNode(props)
   echo rootTree(jnode)
   if showjq: # jqと同じように、JSONを解釈してstdoutへ表示する
     echo jnode.pretty()
