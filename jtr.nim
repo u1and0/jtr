@@ -12,7 +12,7 @@ $ echo '{"foo": "0", "obj": {"bar":1, "baz":"2"}, "name": "ken"}' | ./jtr
 
 import json, strformat, strutils, sequtils, sugar
 
-const VERSION = "v0.2.4"
+const VERSION = "v0.2.4r"
 
 type Option = tuple [
   showjq: bool,
@@ -143,9 +143,7 @@ when isMainModule:
   import os, parseopt
 
   proc parseCommandLine(): Option =
-    let args = commandLineParams()
-    var opt: Option
-    for kind, key, val in getopt(args):
+    for kind, key, val in commandLineParams().getopt():
       case kind
       of cmdLongOption, cmdShortOption:
         case key
@@ -156,13 +154,12 @@ when isMainModule:
           echo VERSION
           quit(0)
         of "jq", "q":
-          opt.showjq = true
+          result.showjq = true
       of cmdArgument:
-        opt.props = parseProperty(key)
+        result.props = parseProperty(key)
       of cmdEnd:
         showHelp()
         quit(1)
-    return opt
 
   let opt = parseCommandLine()
   main(opt.showjq, opt.props)
