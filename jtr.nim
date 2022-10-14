@@ -131,7 +131,7 @@ proc parseProperty*(s: string): seq[string] =
     return @[]
   return s[1..^1].split(".", -1)
 
-proc main(showjq: bool = false, props: seq[string]) =
+proc treeViewEntryPoint(showjq: bool = false, props: seq[string]) =
   let line = stdin.readAll
   let jnode = line.parseJson().walk(props)
   echo rootTree(jnode)
@@ -162,4 +162,4 @@ when isMainModule:
         quit(1)
 
   let opt = parseCommandLine()
-  main(opt.showjq, opt.props)
+  treeViewEntryPoint(opt.showjq, opt.props)
