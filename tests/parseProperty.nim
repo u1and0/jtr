@@ -1,4 +1,4 @@
-import ../jtr
+import ../src/jtr
 
 discard """
   output: '''

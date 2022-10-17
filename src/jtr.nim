@@ -249,7 +249,7 @@ proc parseProperty*(s: string): seq[string] =
 when isMainModule:
   import os, parseopt
 
-  const VERSION = "v0.2.5"
+  const VERSION = "v0.2.6"
 
   type Option = tuple [
     showjq: bool,
