@@ -4,3 +4,4 @@
 /tests/*
 !tests/*.nim
 /idea.md
+/Session.vim

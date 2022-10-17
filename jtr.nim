@@ -1,7 +1,7 @@
 ## jtr is a commmand of JSON tree viewer with type
 ##
-## ```
-## $ echo {"foo":5.0,"baz":[{"foo":{"bar":100,"baz":"click","cat":null}},],"login":true} | ./jtr
+## ```bash
+## $ echo {"foo":5.0,"baz":[{"foo":{"bar":100,"baz":"click","cat":null}},],"login":true} | jtr
 ## .
 ## ├── foo <float>
 ## ├── baz [].
@@ -16,6 +16,22 @@ import json, strformat, strutils, sequtils, sugar
 
 func collectKeys*(jnode: JsonNode): seq[string] =
   ## Collect all keys of JSON object
+  ##
+  ## ```nim
+  ## jnode = """
+  ## {
+  ##   "foo":{
+  ##     "baz": {
+  ##       "apple": 1,
+  ##     },
+  ##     "cd": {
+  ##       "banana": 3
+  ##     }
+  ##   }
+  ## }""".parseJson
+  ##
+  ## doAssert collectKeys(jnode) == @["foo", "baz", "apple", "cd", "banana"]
+  ## ```
   if jnode.kind != JObject:
     return @[]
   for k, v in jnode:
@@ -24,7 +40,34 @@ func collectKeys*(jnode: JsonNode): seq[string] =
       result = concat(result, collectKeys(v))
 
 func seekLargestObject*(jarray: JsonNode): JsonNode =
-  ## Get most number of key object
+  ## Get most number of key object from array of object
+  ##
+  ## ```nim
+  ## let jarray = """
+  ## [
+  ##   {
+  ##     "foo":{
+  ##       "baz": {
+  ##         "apple": 1,
+  ##       },
+  ##       "cd": {
+  ##         "banana": 3
+  ##       }
+  ##     }
+  ##   },
+  ##   {
+  ##     "foo":{
+  ##       "bar": 1,
+  ##       "baz": "key"
+  ##     }
+  ##   }
+  ## ]
+  ## """.parseJson
+  ##
+  ## doAssert $seekLargestObject(jarray) == """{"foo":{"baz":{"apple":1},"cd":{"banana":3}}}"""
+  ##
+  ## ```
+
   if jarray.kind != JArray:
     result = jarray
   result = jarray[0]
@@ -39,17 +82,29 @@ func seekLargestObject*(jarray: JsonNode): JsonNode =
 # 前方宣言
 # objectTree()内でarrayTree()を使う相互再帰のため、
 # 先に宣言が必要
-func arrayTree(jarray: JsonNode, indent = ""): string
+func arrayTree*(jarray: JsonNode, indent = ""): string
 
-func objectTree(jobj: JsonNode, indent = ""): string =
+func objectTree*(jobj: JsonNode, indent = ""): string =
   ## Tree view for type of object elemnts recursively
+  ##
+  ## ```nim
+  ## let obj = """
+  ## {"foo": "0", "obj": {"bar":1, "baz":"2"}, "name": "ken"}
+  ## """.parseJson
+  ## doAssert objectTree(obj) == """├── foo <string>
+  ## ├── obj
+  ## │   ├── bar <int>
+  ## │   └── baz <string>
+  ## └── name <string>"""
+  ## ```
+
   var
     res: seq[string]
     i: int
     branch, nextIndent: string
-  let lastOne = func(i: int): bool = i >= len(jobj)-1
+  let isLastOne = func(i: int): bool = i >= len(jobj)-1
   for key, val in jobj.pairs:
-    if lastOne(i):
+    if isLastOne(i):
       branch = "└── "
       nextIndent = indent & " ".repeat(4)
     else:
@@ -67,8 +122,40 @@ func objectTree(jobj: JsonNode, indent = ""): string =
     i += 1
   return res.join("\n")
 
-func arrayTree(jarray: JsonNode, indent = ""): string =
+func arrayTree*(jarray: JsonNode, indent = ""): string =
   ## Tree view for type of array elemnts recursively
+  ##
+  ## ```nim
+  ## doAssert arrayTree(parseJson("[null,null,null]")) == "[]null"
+  ## doAssert arrayTree(parseJson("[true,false,false]")) == "[]bool"
+  ## doAssert arrayTree(parseJson("[\"cat\", \"dog\"]")) == "[]string"
+  ## doAssert arrayTree(parseJson("[1,2,3]")) == "[]int"
+  ## doAssert arrayTree(parseJson("[1.0,10.0,100.0]")) == "[]float"
+  ## doAssert arrayTree(parseJson("[1,\"2\",3]")) == "[]any"
+  ## doAssert arrayTree(parseJson("[[1,2,3]]")) == "[][]int"
+  ## doAssert arrayTree(parseJson("""
+  ## [
+  ##   {
+  ##     "foo":{
+  ##       "bar": 1,
+  ##       "baz": "key"
+  ##     }
+  ##   },
+  ##   {
+  ##     "foo":{
+  ##       "bar": 2,
+  ##       "baz": "signal",
+  ##       "cat": null
+  ##     }
+  ##   }
+  ## ]
+  ## """)) == """[].
+  ##   └── foo
+  ##       ├── bar <int>
+  ##       ├── baz <string>
+  ##       └── cat <null>"""
+  ## ```
+
   let typesArr: seq[JsonNodeKind] = collect:
     for val in jarray: val.kind
   if all(typesArr, func(x: JsonNodeKind): bool = x == JNull):
@@ -94,11 +181,11 @@ func rootTree*(jnode: JsonNode): string =
   ## Tree view for type of plain JSON recursively
   ##
   ## ```nim
-  ## doAssert rootTree(parseJson("null")) == <null>
-  ## doAssert rootTree(parseJson("true")) == <bool>
-  ## doAssert rootTree(parseJson("\"5\"")) == <string>
-  ## doAssert rootTree(parseJson($5.0)) == <float>
-  ## doAssert rootTree(parseJson($5)) == <int>
+  ## doAssert rootTree(parseJson("null")) == "<null>"
+  ## doAssert rootTree(parseJson("true")) == "<bool>"
+  ## doAssert rootTree(parseJson("\"5\"")) == "<string>"
+  ## doAssert rootTree(parseJson($5.0)) == "<float>"
+  ## doAssert rootTree(parseJson($5)) == "<int>"
   ## ```
   case jnode.kind
     of JNull: "<null>"
@@ -113,7 +200,8 @@ func walkNode*(node: JsonNode, props: seq[string]): JsonNode =
   ## JSON property access
   ##
   ## ```nim
-  ## let js = {
+  ## let js = """
+  ## {
   ##   "foo": "0",
   ##     "obj": {
   ##       "bar": 1,
@@ -121,18 +209,22 @@ func walkNode*(node: JsonNode, props: seq[string]): JsonNode =
   ##       "nex": {
   ##         "coffee": 5,
   ##         "juice": "20",
-  ##         "some": {      <- To access here
+  ##         "some": {
   ##           "apple": "iphone",
   ##           "google": "android"
   ##         }
   ##       },
   ##     },
   ##   "name": "ken"
-  ## }.parseJson
+  ## }""".parseJson
   ## let access = @["obj", "nex", "some"]
   ##
-  ## doAssert walkNode(js, access) == "{\"apple\":\"iphone\",\"google\":\"android\"}"
+  ## doAssert walkNode(js, access).pretty == """{
+  ##   "apple": "iphone",
+  ##   "google": "android"
+  ## }"""
   ## ```
+
   if props.len() == 0:
     return node
   let
