@@ -69,15 +69,16 @@ func seekLargestObject*(jarray: JsonNode): JsonNode =
   ## ```
 
   if jarray.kind != JArray:
-    result = jarray
-  result = jarray[0]
+    return jarray
+  var largest: JsonNode = jarray[0]
   if len(jarray) == 1:
-    return
+    return largest
   for jnode in jarray[1..^1]:
     let a = collectKeys(jnode).len()
-    let b = collectKeys(result).len()
+    let b = collectKeys(largest).len()
     if a > b:
-      result = jnode
+      largest = jnode
+  return largest
 
 # 前方宣言
 # objectTree()内でarrayTree()を使う相互再帰のため、
@@ -157,7 +158,8 @@ func arrayTree*(jarray: JsonNode, indent = ""): string =
   ## ```
 
   let typesArr: seq[JsonNodeKind] = collect:
-    for val in jarray: val.kind
+    for val in jarray:
+      val.kind
   if all(typesArr, func(x: JsonNodeKind): bool = x == JNull):
     return "[]null"
   elif all(typesArr, func(x: JsonNodeKind): bool = x == JBool):
@@ -169,7 +171,7 @@ func arrayTree*(jarray: JsonNode, indent = ""): string =
   elif all(typesArr, func(x: JsonNodeKind): bool = x == JFloat):
     return "[]float"
   elif all(typesArr, func(x: JsonNodeKind): bool = x == JArray):
-    return "[]" & arrayTree(jarray[0])
+    return "[]" & arrayTree(jarray[0]) # TODO 本当にjarray[0]だけでいいのか？seekLargestObject通すべきでは
   elif all(typesArr, func(x: JsonNodeKind): bool = x == JObject):
     let nextIndent = indent & " ".repeat(2)
     let largestObj = seekLargestObject(jarray)
@@ -249,7 +251,7 @@ proc parseProperty*(s: string): seq[string] =
 when isMainModule:
   import os, parseopt
 
-  const VERSION = "v0.2.6"
+  const VERSION = "v0.2.6r"
 
   type Option = tuple [
     showjq: bool,
