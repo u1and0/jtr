@@ -1,7 +1,7 @@
 ## jtr is a commmand of JSON tree viewer with type
 ##
 ## ```bash
-## $ echo {"foo":5.0,"baz":[{"foo":{"bar":100,"baz":"click","cat":null}},],"login":true} | jtr
+## $ echo '{"foo":5.0,"baz":[{"foo":{"bar":100,"baz":"click","cat":null}},],"login":true}' | jtr
 ## .
 ## ├── foo <float>
 ## ├── baz [].
@@ -262,7 +262,7 @@ when isMainModule:
     echo """jtr is a commmand of JSON tree viewer with type
 
   usage:
-    $ echo {"foo":5.0,"baz":[{"foo":{"bar":100,"baz":"click","cat":null}},],"login":true} | ./jtr
+    $ echo '{"foo":5.0,"baz":[{"foo":{"bar":100,"baz":"click","cat":null}}],"login":true}' | jtr
     .
     ├── foo <float>
     ├── baz [].
