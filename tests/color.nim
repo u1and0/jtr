@@ -73,13 +73,32 @@ styledEcho styleBright, fgGreen, "[PASS]", resetStyle, fgBlue, " Yay!"
 # styledEcho(args)
 import strutils
 let tree = rootTree(obj)
-const L = "── "
+const
+  L = "── "
+  K = "<"
+  E = "["
+
+# func findS(line, s: string): int =
+#   var v:int = line.find(s)
+#     if v != -1:
+#       return v
+#     else:
+#       return ^1
+
 for line in tree.splitlines():
-  var idx = line.find(L)
-  if idx > 0:
-    idx += 7
-    # echo line[0 .. idx+6]
-    styledEcho(styleBlink, line[0 ..< idx], fgBlue, line[idx .. ^1], resetStyle)
-  else:
+  var il = line.find(L)
+  if il > 0:
+    il += 7
+    var ik = line.find(K)
+    if not ik == -1:
+      ik = line.find(E)
+    styledEcho(
+      styleBlink, line[0 ..< il], # tree line -> Default Color
+      fgBlue, line[il ..< ik], # object -> Blue Color
+      # styleBlink, line[ie .. ^1], # object -> Default Color
+      fgGreen, line[ik .. ^1], # type -> Green Color
+      resetStyle
+    )
+  else: # not found L
     echo line
 
