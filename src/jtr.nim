@@ -1,7 +1,7 @@
 ## jtr is a commmand of JSON tree viewer with type
 ##
 ## ```bash
-## $ echo {"foo":5.0,"baz":[{"foo":{"bar":100,"baz":"click","cat":null}},],"login":true} | jtr
+## $ echo '{"foo":5.0,"baz":[{"foo":{"bar":100,"baz":"click","cat":null}},],"login":true}' | jtr
 ## .
 ## ├── foo <float>
 ## ├── baz [].
@@ -12,7 +12,7 @@
 ## └── login <bool>
 ## ```
 
-import json, strformat, strutils, sequtils, sugar
+import json, strformat, strutils, sequtils, sugar, terminal
 
 func collectKeys*(jnode: JsonNode): seq[string] =
   ## Collect all keys of JSON object
@@ -247,22 +247,66 @@ proc parseProperty*(s: string): seq[string] =
     return @[]
   return s[1..^1].split(".", -1)
 
+type Index = tuple[branch, types, strings, null, arrays: int]
+
+proc colorEcho*(line: string) =
+  var i: Index
+  i.branch = line.find("── ")
+  if i.branch < 0: # not found branch "──"
+    echo line
+    return
+  else: # found branch "──"
+    i.branch += 7
+    i.strings = line.find("<string")
+    i.null = line.find("<null")
+    i.types = line.find("<")
+    i.arrays = line.find("[")
+    if i.null >= 0: # found array "<null>"
+      styledEcho(
+        styleBright, line[0 ..< i.branch], # tree line -> Default Color
+        fgBlue, line[i.branch ..< i.null], # object -> Blue Color
+        fgBlack, line[i.null .. ^1], # type -> Black Color
+        resetStyle
+      )
+    elif i.strings >= 0: # found strings "<string>"
+      styledEcho(
+        styleBright, line[0 ..< i.branch], # tree line -> Default Color
+        fgBlue, line[i.branch ..< i.strings], # object -> Blue Color
+        resetStyle, fgGreen, line[i.strings .. ^1], # type -> Green Color
+        resetStyle
+      )
+    elif i.types >= 0: # found types "<>"
+      styledEcho(
+        styleBright, line[0 ..< i.branch], # tree line -> Default Color
+        fgBlue, line[i.branch ..< i.types], # object -> Blue Color
+        resetStyle, line[i.types .. ^1], # type -> White Color
+        resetStyle
+      )
+    elif i.arrays >= 0: # found array "[]"
+      styledEcho(
+        styleBright, line[0 ..< i.branch], # tree line -> Default Color
+        fgBlue, line[i.branch ..< i.arrays], # object -> Blue Color
+        styleBright, fgWhite, line[i.arrays .. ^1], # type -> Bold White Color
+        resetStyle
+      )
+    else: # found branch, Just object
+      styledEcho(
+        styleBright, line[0 ..< i.branch], # tree line -> Default Color
+        fgBlue, line[i.branch .. ^1], # object -> Blue Color
+        resetStyle
+      )
+
 
 when isMainModule:
   import os, parseopt
 
-  const VERSION = "v0.2.6r"
-
-  type Option = tuple [
-    showjq: bool,
-    props: seq[string]
-  ]
+  const VERSION = "v0.2.7"
 
   proc showHelp() =
     echo """jtr is a commmand of JSON tree viewer with type
 
   usage:
-    $ echo {"foo":5.0,"baz":[{"foo":{"bar":100,"baz":"click","cat":null}},],"login":true} | ./jtr
+    $ echo '{"foo":5.0,"baz":[{"foo":{"bar":100,"baz":"click","cat":null}}],"login":true}' | jtr
     .
     ├── foo <float>
     ├── baz [].
@@ -278,14 +322,28 @@ when isMainModule:
     --version, -v     Show version
   """
 
-  proc treeViewEntryPoint(showjq: bool = false, props: seq[string]) =
-    let line = stdin.readAll
-    let jnode = line.parseJson().walkNode(props)
-    echo rootTree(jnode)
+  proc treeViewEntryPoint(showjq = false, props: seq[string], color = true) =
+    let
+      line = stdin.readAll
+      jnode = line.parseJson().walkNode(props)
+      tree = rootTree(jnode)
+    if color:
+      for l in tree.splitlines():
+        colorEcho(l)
+    else:
+      echo tree
     if showjq: # jqと同じように、JSONを解釈してstdoutへ表示する
       echo jnode.pretty()
 
+  type Option = tuple [
+    showjq: bool,
+    props: seq[string],
+    color: bool
+  ]
+
   proc parseCommandLine(): Option =
+    var opt: Option
+    opt.color = true # color option is default true
     for kind, key, val in commandLineParams().getopt():
       case kind
       of cmdLongOption, cmdShortOption:
@@ -297,12 +355,17 @@ when isMainModule:
           echo VERSION
           quit(0)
         of "jq", "q":
-          result.showjq = true
+          opt.showjq = true
+        of "color-output", "C":
+          opt.color = true
+        of "monochrome-output ", "M":
+          opt.color = false
       of cmdArgument:
-        result.props = parseProperty(key)
+        opt.props = parseProperty(key)
       of cmdEnd:
         showHelp()
         quit(1)
+    return opt
 
   let opt = parseCommandLine()
-  treeViewEntryPoint(opt.showjq, opt.props)
+  treeViewEntryPoint(opt.showjq, opt.props, opt.color)
