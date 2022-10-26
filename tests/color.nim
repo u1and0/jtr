@@ -21,20 +21,8 @@ discard """
 '''
 """
 
-# Simple object
-var obj = """
-{"foo": "0", "obj": {"bar":1, "baz":"2"}, "name": "ken"}
-""".parseJson
-echo rootTree(obj)
-
-# Object of array
-obj = """
-{"foo": [1,2,3]}
-""".parseJson
-echo rootTree(obj)
-
 # Nested object of array
-obj = """
+var obj = """
 {
   "foo": 5.0,
   "baz": [
@@ -76,6 +64,7 @@ let tree = rootTree(obj)
 const
   L = "── "
   K = "<"
+  N = "<null"
   E = "["
 
 # func findS(line, s: string): int =
@@ -87,18 +76,25 @@ const
 
 for line in tree.splitlines():
   var il = line.find(L)
-  if il > 0:
+  if il >= 0: # found L
     il += 7
-    var ik = line.find(K)
-    if not ik == -1:
+    var ik: int = line.find(K)
+    if not ik >= 0:
       ik = line.find(E)
-    styledEcho(
-      styleBlink, line[0 ..< il], # tree line -> Default Color
-      fgBlue, line[il ..< ik], # object -> Blue Color
-      # styleBlink, line[ie .. ^1], # object -> Default Color
-      fgGreen, line[ik .. ^1], # type -> Green Color
-      resetStyle
-    )
+    if ik >= 0: # found K
+      styledEcho(
+        styleBlink, line[0 ..< il], # tree line -> Default Color
+        fgBlue, line[il ..< ik], # object -> Blue Color
+        # styleBlink, line[ie .. ^1], # object -> Default Color
+        fgGreen, line[ik .. ^1], # type -> Green Color
+        resetStyle
+      )
+    else: # not found K but L
+      styledEcho(
+        styleBlink, line[0 ..< il], # tree line -> Default Color
+        fgBlue, line[il .. ^1], # object -> Blue Color
+        resetStyle
+      )
   else: # not found L
     echo line
 
