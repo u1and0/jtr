@@ -45,56 +45,58 @@ var obj = """
 """.parseJson
 echo rootTree(obj)
 
-import terminal
-styledEcho(fgGreen, obj.pretty, fgDefault)
-styledEcho styleBright, fgGreen, "[PASS]", resetStyle, fgBlue, " Yay!"
-
-# could not load: kernel32
-# (compile with -d:nimDebugDlOpen for more information)
-# Error: execution of an external program failed: '/home/u1and0/home/nim/jtr/tests/color '
-# import colorizeEcho except setConsoleMode
-# initColorizeEcho()
-# cecho "[magenta]Every [green]color [cyan]is [default]beautiful."
-
-
-# let args = [styleBright, fgGreen, "[PASS]", resetStyle, fgBlue, " Yay!"]
-# styledEcho(args)
-import strutils
+import terminal, strutils
 let tree = rootTree(obj)
-const
-  L = "── "
-  K = "<"
-  N = "<null"
-  E = "["
 
-# func findS(line, s: string): int =
-#   var v:int = line.find(s)
-#     if v != -1:
-#       return v
-#     else:
-#       return ^1
+type Index = tuple[branch, types, strings, null, arrays: int]
+
+proc colorEcho(line: string) =
+  var i: Index
+  i.branch = line.find("── ")
+  if i.branch < 0: # not found branch "──"
+    echo line
+    return
+  else: # found branch "──"
+    i.branch += 7
+    i.strings = line.find("<string")
+    i.null = line.find("<null")
+    i.types = line.find("<")
+    i.arrays = line.find("[")
+    if i.null >= 0: # found array "<null>"
+      styledEcho(
+        styleBright, line[0 ..< i.branch], # tree line -> Default Color
+        fgBlue, line[i.branch ..< i.null], # object -> Blue Color
+        fgBlack, line[i.null .. ^1], # type -> Black Color
+        resetStyle
+      )
+    elif i.strings >= 0: # found strings "<string>"
+      styledEcho(
+        styleBright, line[0 ..< i.branch], # tree line -> Default Color
+        fgBlue, line[i.branch ..< i.strings], # object -> Blue Color
+        resetStyle, fgGreen, line[i.strings .. ^1], # type -> Green Color
+        resetStyle
+      )
+    elif i.types >= 0: # found types "<>"
+      styledEcho(
+        styleBright, line[0 ..< i.branch], # tree line -> Default Color
+        fgBlue, line[i.branch ..< i.types], # object -> Blue Color
+        resetStyle, line[i.types .. ^1], # type -> White Color
+        resetStyle
+      )
+    elif i.arrays >= 0: # found array "[]"
+      styledEcho(
+        styleBright, line[0 ..< i.branch], # tree line -> Default Color
+        fgBlue, line[i.branch ..< i.arrays], # object -> Blue Color
+        styleBright, fgWhite, line[i.arrays .. ^1], # type -> Bold White Color
+        resetStyle
+      )
+    else: # found branch, Just object
+      styledEcho(
+        styleBright, line[0 ..< i.branch], # tree line -> Default Color
+        fgBlue, line[i.branch .. ^1], # object -> Blue Color
+        resetStyle
+      )
+
 
 for line in tree.splitlines():
-  var il = line.find(L)
-  if il >= 0: # found L
-    il += 7
-    var ik: int = line.find(K)
-    if not ik >= 0:
-      ik = line.find(E)
-    if ik >= 0: # found K
-      styledEcho(
-        styleBlink, line[0 ..< il], # tree line -> Default Color
-        fgBlue, line[il ..< ik], # object -> Blue Color
-        # styleBlink, line[ie .. ^1], # object -> Default Color
-        fgGreen, line[ik .. ^1], # type -> Green Color
-        resetStyle
-      )
-    else: # not found K but L
-      styledEcho(
-        styleBlink, line[0 ..< il], # tree line -> Default Color
-        fgBlue, line[il .. ^1], # object -> Blue Color
-        resetStyle
-      )
-  else: # not found L
-    echo line
-
+  colorEcho(line)
