@@ -300,7 +300,7 @@ proc colorEcho*(line: string) =
 when isMainModule:
   import os, parseopt
 
-  const VERSION = "v0.2.7"
+  const VERSION = "v0.2.8"
 
   proc showHelp() =
     echo """jtr is a commmand of JSON tree viewer with type
@@ -317,9 +317,11 @@ when isMainModule:
     └── login <bool>
 
   options:
-    --jq, -q          Display jq view
-    --help, -h        Show help message
-    --version, -v     Show version
+    --jq, -q                        Display jq view
+    --color-output, -C              colorize JSON
+    --monochrome-output, -M         monochrome (don't colorize JSON)
+    --help, -h                      Show help message
+    --version, -v                   Show version
   """
 
   proc treeViewEntryPoint(showjq = false, props: seq[string], color = true) =
@@ -358,7 +360,7 @@ when isMainModule:
           opt.showjq = true
         of "color-output", "C":
           opt.color = true
-        of "monochrome-output ", "M":
+        of "monochrome-output", "M":
           opt.color = false
       of cmdArgument:
         opt.props = parseProperty(key)
