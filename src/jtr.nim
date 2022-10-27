@@ -300,7 +300,7 @@ proc colorEcho*(line: string) =
 when isMainModule:
   import os, parseopt
 
-  const VERSION = "v0.2.8"
+  const VERSION = "v0.2.8r"
 
   proc showHelp() =
     echo """jtr is a commmand of JSON tree viewer with type
@@ -324,27 +324,40 @@ when isMainModule:
     --version, -v                   Show version
   """
 
-  proc treeViewEntryPoint(showjq = false, props: seq[string], color = true) =
-    let
-      line = stdin.readAll
-      jnode = line.parseJson().walkNode(props)
-      tree = rootTree(jnode)
-    if color:
-      for l in tree.splitlines():
-        colorEcho(l)
-    else:
-      echo tree
-    if showjq: # jqと同じように、JSONを解釈してstdoutへ表示する
-      echo jnode.pretty()
-
   type Option = tuple [
     showjq: bool,
     props: seq[string],
+    files: seq[string],
     color: bool
   ]
 
+  proc treeViewEntryPoint(opt: Option) =
+    # Read JSON string from STDIN or FILE
+    var lineArr: seq[string]
+    if len(opt.files) == 0:
+      lineArr[0] = stdin.readAll
+    else:
+      for file in opt.files:
+        var f = open(file, FileMode.fmRead)
+        lineArr.add(f.readAll())
+
+    # Write JSON tree to STDOUT
+    for line in lineArr:
+      let
+        jnode = line.parseJson().walkNode(opt.props)
+        tree = rootTree(jnode)
+      if opt.color:
+        for l in tree.splitlines():
+          colorEcho(l)
+      else:
+        echo tree
+      if opt.showjq: # jqと同じように、JSONを解釈してstdoutへ表示する
+        echo jnode.pretty()
+
   proc parseCommandLine(): Option =
-    var opt: Option
+    var
+      opt: Option
+      isFirstArgument = true
     opt.color = true # color option is default true
     for kind, key, val in commandLineParams().getopt():
       case kind
@@ -363,11 +376,15 @@ when isMainModule:
         of "monochrome-output", "M":
           opt.color = false
       of cmdArgument:
-        opt.props = parseProperty(key)
+        if isFirstArgument:
+          opt.props = parseProperty(key)
+          isFirstArgument = false
+        else:
+          opt.files.add(key)
       of cmdEnd:
         showHelp()
         quit(1)
     return opt
 
   let opt = parseCommandLine()
-  treeViewEntryPoint(opt.showjq, opt.props, opt.color)
+  treeViewEntryPoint(opt)
