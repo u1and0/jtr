@@ -1,4 +1,4 @@
-jtr is a commmand of JSON tree viewer with type
+Commmand of JSON tree viewer with type.
 
 # Example
 
