@@ -2,7 +2,7 @@
 <img src="https://img.shields.io/badge/LICENSE-MIT-3388FF.svg"></img>
 <img src="https://img.shields.io/badge/Nim-^v1.6-33FF88.svg"></img>
 
-jtr is a commmand of JSON tree viewer with type
+Commmand of JSON tree viewer with type.
 
 # Example
 
