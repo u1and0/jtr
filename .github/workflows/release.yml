@@ -2,7 +2,8 @@ name: Release packages
 
 on:
   push:
-    branches: [ master ]
+    branches:
+      - master
     # tags:
     #   - 'v*.*.*'
 
@@ -23,6 +24,7 @@ jobs:
           body: If you want, please see tests [tests](https://github.com/u1and0/jtr/blob/master/tests)
           draft: false
           prerelease: false
+
   build:
     needs: release
     runs-on: ${{ matrix.vm }}
@@ -36,22 +38,27 @@ jobs:
           # - name: windows
           #   vm: windows-latest
     steps:
-      - uses: actions/checkout@v1
+      - name: Setup repo
+        uses: actions/checkout@v4
+
       - name: Cache Nim resources
         id: cache_nim
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ~/.choosenim
             ~/.nimble
           key: nimcaches--${{ matrix.vm }}
+
       - uses: jiro4989/setup-nim-action@v1
         with:
-          nim-version: 1.6.6
+          nim-version: 2.0.x
+
       - name: Run main
         run: |
           nimble build -d:release -Y
           nimble bundle
+
       - name: Package(unix)
         if: runner.os != 'Windows'
         uses: thedoctor0/zip-release@master
@@ -59,6 +66,7 @@ jobs:
           type: tar
           directory: jtr-${{ github.ref_name }}/
           filename: ../jtr-${{ github.ref_name }}_${{ matrix.name }}.tar.gz
+
       # - name: Package(win)
       #   if: runner.os == 'Windows'
       #   uses: thedoctor0/zip-release@master
@@ -66,6 +74,7 @@ jobs:
       #     type: zip
       #     directory: jtr-${{ github.ref_name }}/
       #     filename: ../jtr-${{ github.ref_name }}_${{ matrix.name }}.zip
+
       - name: Upload to release(unix)
         if: runner.os != 'Windows'
         uses: actions/upload-release-asset@v1
@@ -76,6 +85,7 @@ jobs:
           asset_path: jtr-${{ github.ref_name }}_${{ matrix.name }}.tar.gz
           asset_name: jtr-${{ github.ref_name }}_${{ matrix.name }}.tar.gz
           asset_content_type: application/gzip
+
       # - name: Upload to release(win)
       #   if: runner.os == 'Windows'
       #   uses: actions/upload-release-asset@v1
