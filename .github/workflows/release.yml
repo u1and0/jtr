@@ -26,10 +26,11 @@ jobs:
 
       - uses: jiro4989/setup-nim-action@v1
         with:
-          nim-version: 2.0.x
+          nim-version: 1.6.x
 
       - name: Test Nim
-        run: /home/runner/.nimble/bin/testament pattern 'tests/*.nim'
+        run: |
+          testament --verbose --colors:off pattern 'tests/*.nim'
 
   release:
     runs-on: ubuntu-latest
