@@ -1,6 +1,9 @@
 name: Release packages
 
 on:
+  # 手動ビルド
+  workflow_dispatch:
+  # tagがpushされた場合
   push:
     tags:
       - 'v[0-9]+.[0-9]+.[0-9]+'
