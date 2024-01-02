@@ -5,3 +5,4 @@
 /tests/*
 !tests/*.nim
 /Session.vim
+/htmldocs
