@@ -55,12 +55,19 @@ jobs:
       - name: Build binary
         run: nimble build -d:release --verbose
 
-      - name: Upload zip
-        # if: runner.os != 'Windows'
+      - name: Upload zip (Unix, MacOS)
+        if: runner.os != 'Windows'
         uses: actions/upload-artifact@v4
         with:
           name: jtr-${{ matrix.name }}
           path: jtr
+
+      - name: Upload zip (Windows)
+        if: runner.os == 'Windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: jtr-${{ matrix.name }}
+          path: jtr.exe
 
       # - name: Package(unix)
       #   if: runner.os != 'Windows'
