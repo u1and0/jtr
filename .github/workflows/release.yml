@@ -4,8 +4,8 @@ on:
   push:
     branches:
       - master
-    # tags:
-    #   - 'v*.*.*'
+    tags:
+      - 'v*.*.*'
 
 jobs:
   release:
@@ -61,11 +61,12 @@ jobs:
 
       - name: Package(unix)
         if: runner.os != 'Windows'
-        uses: thedoctor0/zip-release@master
+        uses: thedoctor0/zip-release@0.7.5
         with:
           type: tar
           directory: jtr-${{ github.ref_name }}/
           filename: ../jtr-${{ github.ref_name }}_${{ matrix.name }}.tar.gz
+          exclusions: '*.git*'
 
       # - name: Package(win)
       #   if: runner.os == 'Windows'
