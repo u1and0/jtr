@@ -58,6 +58,9 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - build-artifact
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
       - uses: actions/checkout@v4
       - name: Create Release
