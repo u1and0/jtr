@@ -38,7 +38,7 @@ jobs:
           # リリース物をかためるディレクトリを作成してcopy
           # Windowsではzip、それ以外のOSではtar.gzファイルとして圧縮する
           mkdir -p "dist/$assets"
-          cp -r jtr LICENSE README.* "dist/$assets/"
+          cp -r bin LICENSE README.* "dist/$assets/"
           (
             cd dist
             if [[ "${{ runner.os }}" == Windows ]]; then
