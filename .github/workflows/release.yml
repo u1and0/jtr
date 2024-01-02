@@ -2,6 +2,8 @@ name: Release packages
 
 on:
   push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
     branches:
       - master
 
@@ -27,7 +29,7 @@ jobs:
           nim-version: 2.0.x
 
       - name: Test Nim
-        run: testament --verbose --colors:off pattern 'tests/*.nim'
+        run: /home/runner/.nimble/bin/testament pattern 'tests/*.nim'
 
   release:
     runs-on: ubuntu-latest
@@ -93,41 +95,3 @@ jobs:
         with:
           name: jtr-${{ matrix.name }}
           path: jtr.exe
-
-      # - name: Package(unix)
-      #   if: runner.os != 'Windows'
-      #   uses: thedoctor0/zip-release@0.7.5
-      #   with:
-      #     type: tar
-      #     filename: jtr-${{ matrix.name }}.tar.gz
-      #     exclusions: '*.git* tests/*'
-      #
-      # - name: Package(win)
-      #   if: runner.os == 'Windows'
-      #   uses: thedoctor0/zip-release@0.7.5
-      #   with:
-      #     type: zip
-      #     directory: jtr-${{ github.ref_name }}/
-      #     filename: ../jtr-${{ github.ref_name }}_${{ matrix.name }}.zip
-
-      # - name: Upload to release(unix)
-      #   if: runner.os != 'Windows'
-      #   uses: actions/upload-release-asset@v1
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #   with:
-      #     upload_url: ${{ needs.release.outputs.upload_url }}
-      #     asset_path: jtr-${{ github.ref_name }}_${{ matrix.name }}.tar.gz
-      #     asset_name: jtr-${{ github.ref_name }}_${{ matrix.name }}.tar.gz
-      #     asset_content_type: application/gzip
-
-      # - name: Upload to release(win)
-      #   if: runner.os == 'Windows'
-      #   uses: actions/upload-release-asset@v1
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #   with:
-      #     upload_url: ${{ needs.release.outputs.upload_url }}
-      #     asset_path: jtr-${{ github.ref_name }}_${{ matrix.name }}.zip
-      #     asset_name: jtr-${{ github.ref_name }}_${{ matrix.name }}.zip
-      #     asset_content_type: application/zip
