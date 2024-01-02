@@ -44,3 +44,12 @@ $ echo '{"foo":5.0,"baz":[{"foo":{"bar":100,"baz":"click","cat":null}}],"login":
 ```
 $ nimble install jtr
 ```
+
+or get from GitHub release
+
+```
+$ curl -fLO https://github.com/u1and0/jtr/releases/download/v0.2.8/jtr-linux.zip
+$ unzip jtr-linux.zip
+$ chmod 755 ./jtr
+$ ./jtr -v
+```

@@ -29,8 +29,7 @@ jobs:
           nim-version: 1.6.x
 
       - name: Test Nim
-        run: |
-          testament --verbose --colors:off pattern 'tests/*.nim'
+        run: testament --verbose --colors:off pattern 'tests/*.nim'
 
   release:
     runs-on: ubuntu-latest
@@ -78,10 +77,10 @@ jobs:
 
       - uses: jiro4989/setup-nim-action@v1
         with:
-          nim-version: 2.0.x
+          nim-version: 1.6.x
 
       - name: Build binary
-        run: nimble build -d:release --verbose
+        run: nimble build -d:release --verbose --opt:size --passL:-static
 
       - name: Upload zip (Unix, MacOS)
         if: runner.os != 'Windows'
