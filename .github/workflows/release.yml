@@ -1,133 +1,122 @@
-name: Release packages
+name: release
 
 on:
   push:
     branches:
       - master
+    tags:
+      - 'v*.*.*'
+
+env:
+  APP_NAME: 'jtr'
+  NIM_VERSION: 'stable'
+  MAINTAINER: 'u1and0'
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
+  build-artifact:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - windows-latest
+          - macOS-latest
     steps:
-
-      - name: Setup repo
-        uses: actions/checkout@v4
-
-      - name: Cache Nim resources
-        id: cache_nim
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.choosenim
-            ~/.nimble
-          key: nimcaches--${{ matrix.vm }}
-
+      - uses: actions/checkout@v4
       - uses: jiro4989/setup-nim-action@v1
         with:
-          nim-version: 2.0.x
+          nim-version: ${{ env.NIM_VERSION }}
+        # nimble buildで実行ファイルを生成する。
+        # nimbleファイルの設定で、実行ファイルを bin ディレクトリ配下に作成するようにしている。
+        # 理由は、実行ファイルを複数作成する場合の、CIからのファイル指定を楽にするため
+      - run: nimble build -Y -d:release
+      - name: Create artifact
+        run: |
+          os="${{ runner.os }}"
+          assets="${{ env.APP_NAME }}_$(echo "${{ runner.os }}" | tr '[:upper:]' '[:lower:]')"
+          echo "$assets"
+          # リリース物をかためるディレクトリを作成してcopy
+          # Windowsではzip、それ以外のOSではtar.gzファイルとして圧縮する
+          mkdir -p "dist/$assets"
+          cp -r bin LICENSE README.* "dist/$assets/"
+          (
+            cd dist
+            if [[ "${{ runner.os }}" == Windows ]]; then
+              7z a "$assets.zip" "$assets"
+            else
+              tar czf "$assets.tar.gz" "$assets"
+            fi
+            ls -lah *.*
+          )
+        shell: bash
+      - uses: actions/upload-artifact@v4
+        with:
+          name: artifact-${{ matrix.os }}
+          path: |
+            dist/*.tar.gz
+            dist/*.zip
 
-      - name: Test Nim
-        run: testament --verbose --colors:off pattern 'tests/*.nim'
-
-  release:
+  create-release:
     runs-on: ubuntu-latest
-    needs: test
-    if: startsWith(github.ref, 'refs/tags/v')
-    outputs:
-      upload_url: ${{ steps.create_release.outputs.upload_url }}
+    needs:
+      - build-artifact
     steps:
-      - name: Create release on GitHub
-        id: create_release
+      - uses: actions/checkout@v4
+      - name: Create Release
+        id: create-release
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.ref_name }}
-          release_name: Release ${{ github.ref_name }}
-          body: If you want, please see [tests](https://github.com/u1and0/jtr/blob/master/tests)
+          tag_name: ${{ github.ref }}
+          release_name: ${{ github.ref }}
+          body: Release
           draft: false
           prerelease: false
 
-  build:
-    runs-on: ${{ matrix.vm }}
-    needs: test
+      - name: Write upload_url to file
+        run: echo '${{ steps.create-release.outputs.upload_url }}' > upload_url.txt
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: create-release
+          path: upload_url.txt
+
+  upload-release:
+    runs-on: ubuntu-latest
+    needs: create-release
     strategy:
       matrix:
         include:
-          - name: linux
-            vm: ubuntu-latest
-          - name: macosx
-            vm: macos-latest
-          - name: windows
-            vm: windows-latest
+          - os: ubuntu-latest
+            asset_name_suffix: linux.tar.gz
+            asset_content_type: application/gzip
+          - os: windows-latest
+            asset_name_suffix: windows.zip
+            asset_content_type: application/zip
+          - os: macOS-latest
+            asset_name_suffix: macos.tar.gz
+            asset_content_type: application/gzip
     steps:
-      - name: Setup repo
-        uses: actions/checkout@v4
-
-      - name: Cache Nim resources
-        id: cache_nim
-        uses: actions/cache@v3
+      - uses: actions/download-artifact@v4
         with:
-          path: |
-            ~/.choosenim
-            ~/.nimble
-          key: nimcaches--${{ matrix.vm }}
+          name: artifact-${{ matrix.os }}
 
-      - uses: jiro4989/setup-nim-action@v1
+      - uses: actions/download-artifact@v2
         with:
-          nim-version: 2.0.x
+          name: create-release
 
-      - name: Build binary
-        run: nimble build -d:release --verbose
+      - id: vars
+        run: |
+          echo "::set-output name=upload_url::$(cat upload_url.txt)"
 
-      - name: Upload zip (Unix, MacOS)
-        if: runner.os != 'Windows'
-        uses: actions/upload-artifact@v4
+      - name: Upload Release Asset
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          name: jtr-${{ matrix.name }}
-          path: jtr
-
-      - name: Upload zip (Windows)
-        if: runner.os == 'Windows'
-        uses: actions/upload-artifact@v4
-        with:
-          name: jtr-${{ matrix.name }}
-          path: jtr.exe
-
-      # - name: Package(unix)
-      #   if: runner.os != 'Windows'
-      #   uses: thedoctor0/zip-release@0.7.5
-      #   with:
-      #     type: tar
-      #     filename: jtr-${{ matrix.name }}.tar.gz
-      #     exclusions: '*.git* tests/*'
-      #
-      # - name: Package(win)
-      #   if: runner.os == 'Windows'
-      #   uses: thedoctor0/zip-release@0.7.5
-      #   with:
-      #     type: zip
-      #     directory: jtr-${{ github.ref_name }}/
-      #     filename: ../jtr-${{ github.ref_name }}_${{ matrix.name }}.zip
-
-      # - name: Upload to release(unix)
-      #   if: runner.os != 'Windows'
-      #   uses: actions/upload-release-asset@v1
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #   with:
-      #     upload_url: ${{ needs.release.outputs.upload_url }}
-      #     asset_path: jtr-${{ github.ref_name }}_${{ matrix.name }}.tar.gz
-      #     asset_name: jtr-${{ github.ref_name }}_${{ matrix.name }}.tar.gz
-      #     asset_content_type: application/gzip
-
-      # - name: Upload to release(win)
-      #   if: runner.os == 'Windows'
-      #   uses: actions/upload-release-asset@v1
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #   with:
-      #     upload_url: ${{ needs.release.outputs.upload_url }}
-      #     asset_path: jtr-${{ github.ref_name }}_${{ matrix.name }}.zip
-      #     asset_name: jtr-${{ github.ref_name }}_${{ matrix.name }}.zip
-      #     asset_content_type: application/zip
+          upload_url: ${{ steps.vars.outputs.upload_url }}
+          asset_path: ${{ env.APP_NAME }}_${{ matrix.asset_name_suffix }}
+          asset_name: ${{ env.APP_NAME }}_${{ matrix.asset_name_suffix }}
+          asset_content_type: ${{ matrix.asset_content_type }}
