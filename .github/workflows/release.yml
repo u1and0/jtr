@@ -63,8 +63,7 @@ jobs:
         uses: thedoctor0/zip-release@0.7.5
         with:
           type: tar
-          directory: jtr/
-          filename: ../jtr-${{ matrix.name }}.tar.gz
+          filename: jtr-${{ matrix.name }}.tar.gz
           exclusions: '*.git*'
 
       - name: Package(win)
