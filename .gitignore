@@ -1,6 +1,8 @@
 /nimcache/
 /jtr
+/src/jtr
 /testresults/
 /tests/*
 !tests/*.nim
 /Session.vim
+/htmldocs

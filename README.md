@@ -1,4 +1,8 @@
-jtr is a commmand of JSON tree viewer with type
+<img src="https://img.shields.io/badge/version-v0.2.8-FF7777.svg"></img>
+<img src="https://img.shields.io/badge/LICENSE-MIT-3388FF.svg"></img>
+<img src="https://img.shields.io/badge/Nim-^v1.6-33FF88.svg"></img>
+
+Commmand of JSON tree viewer with type.
 
 # Example
 
@@ -48,4 +52,13 @@ $ git clone https://github.com/u1and0/nim.git
 $ cd jtr
 $ nim compile -d:release src/jtr.nim
 $ sudo  ln -s `pwd`/src/jtr /usr/bin
+```
+
+or get from GitHub release
+
+```
+$ curl -fLO https://github.com/u1and0/jtr/releases/download/v0.2.8/jtr-linux.zip
+$ unzip jtr-linux.zip
+$ chmod 755 ./jtr
+$ ./jtr -v
 ```
