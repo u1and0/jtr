@@ -40,3 +40,12 @@ $ echo '{"foo":5.0,"baz":[{"foo":{"bar":100,"baz":"click","cat":null}}],"login":
 ```
 $ nimble install jtr
 ```
+
+or compile from source
+
+```
+$ git clone https://github.com/u1and0/nim.git
+$ cd jtr
+$ nim compile -d:release src/jtr.nim
+$ sudo  ln -s `pwd`/src/jtr /usr/bin
+```
