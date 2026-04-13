@@ -58,8 +58,8 @@ jobs:
         include:
           - name: linux
             vm: ubuntu-latest
-          - name: macosx
-            vm: macos-latest
+          # - name: macosx
+          #   vm: macos-latest
           - name: windows
             vm: windows-latest
     steps:
