@@ -25,9 +25,9 @@ jobs:
             ~/.nimble
           key: nimcaches--${{ matrix.vm }}
 
-      - uses: jiro4989/setup-nim-action@v2
+      - uses: jiro4989/setup-nim-action@v1
         with:
-          nim-version: '2.0.x'
+          nim-version: '1.6.x'
 
       - name: Test Nim
         run: testament --verbose --colors:off pattern 'tests/*.nim'
