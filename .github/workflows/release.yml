@@ -26,7 +26,7 @@ jobs:
 
       - uses: jiro4989/setup-nim-action@v2
         with:
-          nim-version: 1.6.x
+          nim-version: '2.0.x'
 
       - name: Test Nim
         run: testament --verbose --colors:off pattern 'tests/*.nim'
