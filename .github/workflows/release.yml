@@ -6,6 +6,7 @@ on:
       - 'v[0-9]+.[0-9]+.[0-9]+'
     branches:
       - master
+      - release*
 
 jobs:
   test:
@@ -60,8 +61,8 @@ jobs:
             vm: ubuntu-latest
           # - name: macosx
           #   vm: macos-latest
-          - name: windows
-            vm: windows-latest
+          # - name: windows
+          #   vm: windows-latest
     steps:
       - name: Setup repo
         uses: actions/checkout@v4
